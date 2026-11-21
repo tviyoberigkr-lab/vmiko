@@ -1,0 +1,179 @@
+{
+  "id": "m1-d9",
+  "module": "М1",
+  "day": 9,
+  "title": "GROUP BY за датою: DATE_TRUNC",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d9-01",
+      "type": "card",
+      "title": "Дати по місяцях: DATE_TRUNC",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Олена питає: «Як ішли продажі по місяцях?» Якщо групувати за `order_date`, вийде рядок на кожен **день** — сотні рядків.",
+        "`DATE_TRUNC('month', order_date)` «обрізає» дату до першого числа місяця: 17 березня → 1 березня. Усі дні місяця стають однаковими — і їх можна згрупувати.",
+        "`SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*)\nFROM orders\nGROUP BY month\nORDER BY month`",
+        "Замість `'month'` можна `'quarter'` (квартал), `'year'`, `'week'`."
+      ],
+      "question": {
+        "prompt": "Що дасть `DATE_TRUNC('year', DATE '2025-08-19')`?",
+        "options": [
+          { "text": "2025-01-01", "correct": true, "explain": "Так: обрізає до початку року." },
+          { "text": "2025", "correct": false, "explain": "DATE_TRUNC повертає дату-час, а не число. Рік лишається, місяць і день стають першими." },
+          { "text": "2025-08-01", "correct": false, "explain": "Так обріже 'month'. 'year' — до 1 січня." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d9-02",
+      "type": "choice",
+      "title": "Передбач: DATE_TRUNC для місяця",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Що поверне `DATE_TRUNC('month', DATE '2025-03-17')`? Подумай, потім запусти.",
+      "sandbox": "SELECT DATE_TRUNC('month', DATE '2025-03-17') AS m",
+      "options": [
+        { "text": "2025-03-01", "correct": true, "explain": "Так: перше число того самого місяця. (У pgAdmin чи DBeaver поруч буде ще й час 00:00 — це нормально.)" },
+        { "text": "2025-03-31", "correct": false, "explain": "DATE_TRUNC обрізає вниз, до початку періоду, а не до кінця." },
+        { "text": "3", "correct": false, "explain": "Номер місяця дає інша функція. DATE_TRUNC повертає дату." },
+        { "text": "2025-01-01", "correct": false, "explain": "Так буде для 'year'. Тут 'month'." }
+      ]
+    },
+    {
+      "id": "m1-d9-03",
+      "type": "sql",
+      "title": "Замовлення по місяцях 2025 року",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Виведи **місяць** і **кількість усіх замовлень** за кожен місяць **2025 року**, від січня до грудня.",
+      "starter": "SELECT DATE_TRUNC('month', order_date) AS month, \nFROM orders\nWHERE \nGROUP BY month\nORDER BY month",
+      "reference": "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+      "hints": [
+        "Скелет уже є — бракує агрегату і фільтра за роком.",
+        "Після коми в SELECT: COUNT(*). У WHERE: order_date BETWEEN '2025-01-01' AND '2025-12-31'.",
+        "Приклад на іншій таблиці: SELECT DATE_TRUNC('year', registered_at) AS year, COUNT(*) FROM customers GROUP BY year ORDER BY year"
+      ],
+      "success": "12 рядків — по одному на місяць. Бачиш місяць, що випадає з ряду?"
+    },
+    {
+      "id": "m1-d9-04",
+      "type": "sql",
+      "title": "Виручка по місяцях 2025 року",
+      "minutes": 5,
+      "device": "any",
+      "prompt": "Тепер гроші. Виведи **місяць** і **виручку** (сума `total_uah` доставлених замовлень) за кожен місяць **2025 року**, від січня до грудня.",
+      "starter": "",
+      "reference": "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+      "hints": [
+        "Як попередній запит, але сума замість кількості і ще одна умова у WHERE.",
+        "SUM(total_uah); у WHERE: status = 'delivered' AND order_date BETWEEN …; GROUP BY month ORDER BY month.",
+        "Приклад на іншій таблиці: SELECT DATE_TRUNC('quarter', registered_at) AS q, COUNT(*) FROM customers WHERE acquisition_channel = 'telegram' GROUP BY q ORDER BY q"
+      ],
+      "success": "Ось вона — динаміка 2025 року. Восени зростання, у листопаді–грудні пік. А навесні щось не так…"
+    },
+    {
+      "id": "m1-d9-05",
+      "type": "choice",
+      "title": "Де провал?",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Запусти запит. У якому місяці 2025 року виручка помітно випадає з ряду?",
+      "sandbox": "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) AS revenue FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+      "options": [
+        { "text": "Березень", "correct": true, "explain": "Так: ≈6,6 млн грн проти ≈10,0 млн у лютому і ≈11,6 млн у квітні — на третину менше за сусідів. Це мінімум року." },
+        { "text": "Лютий", "correct": false, "explain": "Лютий трохи нижчий за січень (він коротший), але різниця невелика. Подивись на наступний місяць." },
+        { "text": "Січень", "correct": false, "explain": "Січень — на рівні лютого. Провал місяцем пізніше." },
+        { "text": "Листопад", "correct": false, "explain": "Листопад, навпаки, один із найсильніших місяців — сезон і відключення світла." }
+      ]
+    },
+    {
+      "id": "m1-d9-06",
+      "type": "choice",
+      "title": "Гіпотеза: що перевірити першим?",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Березень 2025 провалився. З чого аналітик почне перевірку? Підказка: у таблиці `promo_codes` є весняний промокод — запусти запит.",
+      "sandbox": "SELECT * FROM promo_codes WHERE code LIKE 'VESNA%'",
+      "options": [
+        { "text": "Перевірити, чи застосовували промокод VESNA25: він мав діяти з 1 березня 2025", "correct": true, "explain": "Так: це перевірювана гіпотеза, і дані для неї є. Перевіримо в наступній вправі." },
+        { "text": "Сайт не працював увесь березень", "correct": false, "explain": "Тоді замовлень не було б зовсім. А в березні — майже тисяча доставлених." },
+        { "text": "У березні завжди спад — це сезонність", "correct": false, "explain": "Гарна думка, але її треба перевірити: у березні 2024 провалу не було. Подивимось у фінальному проєкті." },
+        { "text": "Клієнти поїхали у відпустки", "correct": false, "explain": "Здогадка без жодного способу перевірити її нашими даними." }
+      ]
+    },
+    {
+      "id": "m1-d9-07",
+      "type": "sql",
+      "title": "Перевір гіпотезу: VESNA25 по місяцях",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "У VESNA25 `promo_code_id = 5`, діяв з 1 березня по 15 квітня 2025. Порахуй, **скільки замовлень з цим промокодом** було **в кожному місяці**: виведи місяць і кількість, по порядку місяців.",
+      "starter": "",
+      "reference": "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE promo_code_id = 5 GROUP BY month ORDER BY month",
+      "hints": [
+        "Фільтр за промокодом і групування за місяцем.",
+        "WHERE promo_code_id = 5, далі GROUP BY month ORDER BY month — як у вправі про місяці.",
+        "Приклад на іншій таблиці: SELECT DATE_TRUNC('month', registered_at) AS month, COUNT(*) FROM customers WHERE acquisition_channel = 'email' GROUP BY month ORDER BY month"
+      ],
+      "success": "Березня в результаті немає взагалі — жодного застосування, хоча код мав діяти з 1 березня. У квітні — 459. А рік тому VESNA24 у березні 2024 застосували 502 рази. Схоже, промокод зламався саме в березні 2025."
+    },
+    {
+      "id": "m1-d9-08",
+      "type": "choice",
+      "title": "Гіпотеза для Олени",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Яке повідомлення Олені найкраще? Добре: є числа, гіпотеза подана як гіпотеза, є наступний крок.",
+      "options": [
+        { "text": "У березні 2025 виручка — 6,6 млн грн, на третину менше, ніж у лютому (10,0 млн) і квітні (11,6 млн). Промокод VESNA25 мав діяти з 1 березня, але в березні його не застосували жодного разу, а в квітні — 459 разів. Гіпотеза: у березні промокод не працював на сайті, і частина покупців пішла. Пропоную перевірити журнали сайту за березень.", "correct": true, "explain": "Так: числа з запитів, обережне формулювання («гіпотеза») і конкретна перевірка." },
+        { "text": "Березень провалився через промокод — це доведено.", "correct": false, "explain": "Збіг у часі — ще не доказ. Ми бачимо зв'язок, але не перевірили причину." },
+        { "text": "У березні продажі впали, бо навесні люди менше купують.", "correct": false, "explain": "Немає чисел, а квітень — теж весна — один із сильних місяців. Дані цьому суперечать." },
+        { "text": "Виручка в березні 2025: 6637131.15.", "correct": false, "explain": "Лише число, без порівняння, пояснення і дії. Олена не зрозуміє, що з ним робити." }
+      ]
+    },
+    {
+      "id": "m1-d9-09",
+      "type": "parsons",
+      "title": "Збери запит: нові клієнти по місяцях",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "А може, у березні просто прийшло менше нових клієнтів? Збери запит: **кількість реєстрацій по місяцях 2025 року**, по порядку місяців. Є зайві блоки.",
+      "blocks": [
+        "SELECT DATE_TRUNC('month', registered_at) AS month, COUNT(*)",
+        "FROM customers",
+        "WHERE registered_at BETWEEN '2025-01-01' AND '2025-12-31'",
+        "GROUP BY month",
+        "ORDER BY month"
+      ],
+      "distractors": [
+        "GROUP BY registered_at",
+        "ORDER BY COUNT(*)",
+        "WHERE registered_at = 2025"
+      ],
+      "reference": "SELECT DATE_TRUNC('month', registered_at) AS month, COUNT(*) FROM customers WHERE registered_at BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+      "success": "У березні 2025 — 532 реєстрації, більше, ніж у лютому (432). Нових клієнтів не поменшало, отже проблема не в залученні, а в покупках. Ще одна гіпотеза відкинута — так і працює аналітик.",
+      "hints": [
+        "Порядок: SELECT → FROM → WHERE → GROUP BY → ORDER BY.",
+        "Групуємо за обрізаним місяцем (month), а не за повною датою. Рік задаємо діапазоном дат.",
+        "Схожий запит на іншій таблиці: SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE status = 'cancelled' GROUP BY month ORDER BY month"
+      ]
+    },
+    {
+      "id": "m1-d9-10",
+      "type": "choice",
+      "title": "Повтор: правило GROUP BY",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Який запит правильний?",
+      "options": [
+        { "text": "SELECT city, COUNT(*) FROM customers GROUP BY city", "correct": true, "explain": "Так: city у GROUP BY, COUNT — агрегат." },
+        { "text": "SELECT city, full_name, COUNT(*) FROM customers GROUP BY city", "correct": false, "explain": "full_name не в GROUP BY і не в агрегаті — база не знає, яке ім'я показати для міста. Помилка." },
+        { "text": "SELECT city, COUNT(*) FROM customers", "correct": false, "explain": "Без GROUP BY колонку city не можна показувати поруч з агрегатом — помилка." }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "id": "m1-d10",
+  "module": "М1",
+  "day": 10,
+  "title": "HAVING і перші питання проєкту",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d10-01",
+      "type": "card",
+      "title": "HAVING — фільтр після підрахунку",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Олена: «Покажи міста, де **понад 500 клієнтів**». Кількість з'являється лише після `GROUP BY`. А `WHERE` працює раніше — з окремими рядками, до групування.",
+        "Для умов на результат агрегату є `HAVING` — він іде **після** `GROUP BY`:\n`SELECT city, COUNT(*)\nFROM customers\nGROUP BY city\nHAVING COUNT(*) > 500`",
+        "Просте правило: умова на **рядок** (місто, статус, дата) — у `WHERE`. Умова на **групу** (`COUNT`, `SUM`, `AVG`) — у `HAVING`."
+      ],
+      "question": {
+        "prompt": "Де записати умову «середня ціна категорії понад 3000 грн»?",
+        "options": [
+          { "text": "HAVING AVG(price_uah) > 3000", "correct": true, "explain": "Так: середня ціна — результат агрегату по групі." },
+          { "text": "WHERE AVG(price_uah) > 3000", "correct": false, "explain": "У WHERE агрегати заборонені: на цьому етапі груп ще немає." },
+          { "text": "WHERE price_uah > 3000", "correct": false, "explain": "Це інше питання: відкине дешеві товари ще до підрахунку. Середня ціна категорії тут ні до чого." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d10-02",
+      "type": "sql",
+      "title": "Міста, де понад 500 клієнтів",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Олена обирає міста для реклами на білбордах. Виведи `city` і кількість клієнтів лише для міст, де клієнтів **понад 500**.",
+      "starter": "SELECT city, COUNT(*)\nFROM customers\nGROUP BY city\n",
+      "reference": "SELECT city, COUNT(*) FROM customers GROUP BY city HAVING COUNT(*) > 500",
+      "hints": [
+        "Кількість по містах уже рахується. Бракує фільтра на цю кількість.",
+        "Після GROUP BY city допиши HAVING COUNT(*) > 500.",
+        "Приклад на іншій таблиці: SELECT brand, COUNT(*) FROM products GROUP BY brand HAVING COUNT(*) >= 25"
+      ],
+      "success": "Десять міст. Решта 14 — кандидати на дешевші канали, ніж білборди."
+    },
+    {
+      "id": "m1-d10-03",
+      "type": "choice",
+      "title": "WHERE чи HAVING?",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Олена: «Покажи категорії, де середня ціна понад 3000 грн, — але рахуй **лише товари Xiaomi**». Як розставити умови?",
+      "options": [
+        { "text": "WHERE brand = 'Xiaomi' … GROUP BY category HAVING AVG(price_uah) > 3000", "correct": true, "explain": "Так: бренд — властивість рядка (WHERE, до групування), середня ціна — групи (HAVING, після)." },
+        { "text": "WHERE brand = 'Xiaomi' AND AVG(price_uah) > 3000 … GROUP BY category", "correct": false, "explain": "Агрегат у WHERE — помилка: груп ще немає." },
+        { "text": "GROUP BY category HAVING brand = 'Xiaomi' AND AVG(price_uah) > 3000", "correct": false, "explain": "brand не в GROUP BY — у HAVING його не можна використати так. Помилка." },
+        { "text": "Байдуже, обидва варіанти дадуть те саме", "correct": false, "explain": "Ні: WHERE відбирає рядки до групування, HAVING — групи після. Це різні етапи." }
+      ]
+    },
+    {
+      "id": "m1-d10-04",
+      "type": "sql",
+      "title": "Знайди помилку: агрегат у WHERE",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Колега шукав категорії, де **понад 18 товарів**, і отримав помилку. Виправ запит. Колонки: `category`, кількість товарів.",
+      "starter": "SELECT category, COUNT(*)\nFROM products\nWHERE COUNT(*) > 18\nGROUP BY category",
+      "reference": "SELECT category, COUNT(*) FROM products GROUP BY category HAVING COUNT(*) > 18",
+      "hints": [
+        "Помилка каже: агрегатні функції заборонені у WHERE.",
+        "Перенеси умову після GROUP BY і заміни WHERE на HAVING.",
+        "Приклад на іншій таблиці: SELECT delivery_method, COUNT(*) FROM orders GROUP BY delivery_method HAVING COUNT(*) > 10000"
+      ],
+      "success": "Запам'ятай повідомлення «aggregate functions are not allowed in WHERE» — тепер ти знаєш, що воно означає."
+    },
+    {
+      "id": "m1-d10-05",
+      "type": "sql",
+      "title": "Категорії з маржею понад 30 %",
+      "minutes": 5,
+      "device": "prefer_desktop",
+      "prompt": "Олена хоче знати, де найвигідніший асортимент. Для кожної **категорії** порахуй **середню частку маржі** товарів — середнє від `(price_uah - cost_uah)::numeric / price_uah` (0.3 = 30 %) — і залиш лише категорії, де вона **понад 0.3**. Колонки: `category`, середня частка.",
+      "starter": "",
+      "reference": "SELECT category, AVG((price_uah - cost_uah)::numeric / price_uah) FROM products GROUP BY category HAVING AVG((price_uah - cost_uah)::numeric / price_uah) > 0.3",
+      "hints": [
+        "Три частини: частка маржі (не забудь ::numeric!), AVG по категоріях і HAVING.",
+        "SELECT category, AVG(вираз) … GROUP BY category HAVING AVG(той самий вираз) > 0.3. У HAVING назву з AS писати не можна — повтори вираз.",
+        "Приклад на іншій таблиці: SELECT delivery_method, AVG(discount_uah / total_uah) FROM orders WHERE total_uah > 0 GROUP BY delivery_method HAVING AVG(discount_uah / total_uah) > 0.01"
+      ],
+      "success": "Без ::numeric тут вийшов би 0 у всіх категорій — і порожній результат. Пастка дня 5 нікуди не зникла."
+    },
+    {
+      "id": "m1-d10-06",
+      "type": "sql",
+      "title": "Питання 1: 2025 рік загалом",
+      "minutes": 4,
+      "device": "any",
+      "project": "Проєкт М1 · питання 1 з 5",
+      "prompt": "Починаємо проєкт «5 питань Олени». **Питання 1:** скільки замовлень і яка виручка була у 2025 році? Виведи в одному рядку **кількість доставлених замовлень** і **виручку** за 2025 рік.",
+      "starter": "",
+      "reference": "SELECT COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'",
+      "hints": [
+        "Два агрегати в одному рядку і два фільтри: статус і рік.",
+        "SELECT COUNT(*), SUM(total_uah) … WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'.",
+        "Приклад на іншій таблиці: SELECT COUNT(*), AVG(price_uah) FROM products WHERE category = 'Блендери'"
+      ],
+      "success": "24 685 доставлених замовлень і 154,2 млн грн. Тепер розкладемо рік на квартали."
+    },
+    {
+      "id": "m1-d10-07",
+      "type": "sql",
+      "title": "Питання 1: 2025 рік по кварталах",
+      "minutes": 4,
+      "device": "prefer_desktop",
+      "project": "Проєкт М1 · питання 1 з 5",
+      "prompt": "Розклади 2025 рік **по кварталах**: виведи квартал (`DATE_TRUNC('quarter', order_date)`), **кількість доставлених замовлень** і **виручку**, від I до IV кварталу.",
+      "starter": "",
+      "reference": "SELECT DATE_TRUNC('quarter', order_date) AS quarter, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY quarter ORDER BY quarter",
+      "hints": [
+        "Як виручка по місяцях з дня 9, лише 'quarter' замість 'month' і ще COUNT(*).",
+        "SELECT DATE_TRUNC('quarter', order_date) AS quarter, COUNT(*), SUM(total_uah) … GROUP BY quarter ORDER BY quarter.",
+        "Приклад на іншій таблиці: SELECT DATE_TRUNC('quarter', registered_at) AS quarter, COUNT(*) FROM customers WHERE registered_at BETWEEN '2024-01-01' AND '2024-12-31' GROUP BY quarter ORDER BY quarter"
+      ],
+      "success": "IV квартал — 53,4 млн грн, третина річної виручки. А I квартал найслабший — і не лише через зиму: в ньому той самий березень."
+    },
+    {
+      "id": "m1-d10-08",
+      "type": "sql",
+      "title": "Питання 2: способи доставки",
+      "minutes": 4,
+      "device": "prefer_desktop",
+      "project": "Проєкт М1 · питання 2 з 5",
+      "prompt": "**Питання 2:** який спосіб доставки найпопулярніший і в якого найвищий середній чек? Для **доставлених замовлень 2025 року** виведи `delivery_method`, **кількість замовлень** і **середній чек**, від найпопулярнішого.",
+      "starter": "",
+      "reference": "SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method ORDER BY COUNT(*) DESC",
+      "hints": [
+        "Групи — способи доставки, два агрегати, сортування за кількістю.",
+        "SELECT delivery_method, COUNT(*), AVG(total_uah) … GROUP BY delivery_method ORDER BY COUNT(*) DESC.",
+        "Приклад на іншій таблиці: SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand ORDER BY COUNT(*) DESC"
+      ],
+      "success": "Відповідь у таблиці. Тепер сформулюй її для Олени — у наступній вправі."
+    },
+    {
+      "id": "m1-d10-09",
+      "type": "choice",
+      "title": "Питання 2: висновок",
+      "minutes": 2,
+      "device": "any",
+      "project": "Проєкт М1 · питання 2 з 5",
+      "prompt": "Ось результат з округленим чеком. Який висновок точний?",
+      "sandbox": "SELECT delivery_method, COUNT(*) AS orders_cnt, ROUND(AVG(total_uah), 2) AS avg_check FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method ORDER BY orders_cnt DESC",
+      "options": [
+        { "text": "Нова пошта — і найпопулярніша (16 885 із 24 685 замовлень, ≈68 %), і з найвищим чеком (≈6 289 грн). Але чеки всіх способів відрізняються лише на 2–3 %, тож на суму покупки спосіб доставки майже не впливає.", "correct": true, "explain": "Так: обидві відповіді з числами і чесна примітка, що різниця в чеках мала." },
+        { "text": "Найвищий чек у самовивозу — треба розвивати пункти видачі.", "correct": false, "explain": "За 2025 рік у самовивозу якраз найнижчий чек (≈6 130 грн). Перевір колонку avg_check." },
+        { "text": "Укрпошта — найпопулярніша, бо найдешевша.", "correct": false, "explain": "За кількістю Укрпошта друга. А «бо найдешевша» — причина, якої в даних немає." },
+        { "text": "Нова пошта має чек на 160 грн більший, отже клієнти Нової пошти багатші.", "correct": false, "explain": "Різниця 2–3 % — замала для таких висновків, і про доходи клієнтів даних немає." }
+      ]
+    }
+  ]
+}

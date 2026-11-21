@@ -1,0 +1,227 @@
+{
+  "id": "m1-d3",
+  "module": "М1",
+  "day": 3,
+  "title": "IN, BETWEEN, LIKE, IS NULL",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d3-01",
+      "type": "card",
+      "title": "IN — перелік замість ланцюжка OR",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Олена питає: «Покажи товари Xiaomi, Anker і Baseus». Можна написати три умови через OR — але це довго, і легко загубити дужки.",
+        "`IN` перевіряє, чи значення є в переліку:\n`WHERE brand IN ('Xiaomi', 'Anker', 'Baseus')`\nЦе те саме, що `brand = 'Xiaomi' OR brand = 'Anker' OR brand = 'Baseus'`.",
+        "Перелік — у дужках, через кому. Текст — в одинарних лапках, числа — без: `WHERE promo_code_id IN (5, 8)`.",
+        "Є і заперечення: `NOT IN ('Xiaomi', 'Anker')` — усі, крім цих."
+      ],
+      "question": {
+        "prompt": "Який запис рівнозначний `WHERE city IN ('Київ', 'Львів')`?",
+        "options": [
+          { "text": "WHERE city = 'Київ' OR city = 'Львів'", "correct": true, "explain": "Так. IN — це скорочений запис кількох OR для однієї колонки." },
+          { "text": "WHERE city = 'Київ' AND city = 'Львів'", "correct": false, "explain": "Місто не може одночасно бути і Києвом, і Львовом — такий запит поверне 0 рядків." },
+          { "text": "WHERE city = 'Київ, Львів'", "correct": false, "explain": "Це пошук міста з дивною назвою «Київ, Львів». Такого в даних немає." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d3-02",
+      "type": "sql",
+      "title": "Товари трьох брендів",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Олена домовляється про знижку з дистриб'ютором, який возить **Xiaomi, Anker і Baseus**. Виведи `product_name`, `brand`, `price_uah` усіх товарів цих трьох брендів.",
+      "starter": "SELECT product_name, brand, price_uah\nFROM products\nWHERE ",
+      "reference": "SELECT product_name, brand, price_uah FROM products WHERE brand IN ('Xiaomi', 'Anker', 'Baseus')",
+      "hints": [
+        "Три бренди — це перелік. Замість трьох OR скористайся IN.",
+        "WHERE brand IN (…) — у дужках три назви, кожна в одинарних лапках, через кому. Пиши бренди точно як у даних: з великої літери.",
+        "Приклад на іншій таблиці: SELECT * FROM customers WHERE acquisition_channel IN ('email', 'referral')"
+      ],
+      "success": "Бачиш, скільки рядків? Це асортимент, про який Олена говоритиме з дистриб'ютором."
+    },
+    {
+      "id": "m1-d3-03",
+      "type": "card",
+      "title": "BETWEEN — діапазон разом із межами",
+      "minutes": 2,
+      "device": "any",
+      "screens": [
+        "`BETWEEN a AND b` — значення від a до b **включно з обома межами**:\n`WHERE total_uah BETWEEN 1000 AND 2000` — те саме, що `total_uah >= 1000 AND total_uah <= 2000`.",
+        "Для дат так само. Усі замовлення за червень 2025:\n`WHERE order_date BETWEEN '2025-06-01' AND '2025-06-30'`\nМенша межа — першою, інакше рядків не буде."
+      ],
+      "question": {
+        "prompt": "Чи потрапить замовлення на 2000 грн у `WHERE total_uah BETWEEN 1000 AND 2000`?",
+        "options": [
+          { "text": "Так, межі входять", "correct": true, "explain": "Так. BETWEEN включає обидві межі: і 1000, і 2000." },
+          { "text": "Ні, лише строго менше 2000", "correct": false, "explain": "Це було б total_uah >= 1000 AND total_uah < 2000. BETWEEN межу включає." },
+          { "text": "Залежить від того, чи це ціле число", "correct": false, "explain": "Ні, тип не важливий: 2000 і 2000.00 — однакове значення, і воно в діапазоні." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d3-04",
+      "type": "sql",
+      "title": "Замовлення за грудень 2025",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Олена хоче розібрати передноворічний сезон. Виведи `order_id`, `order_date`, `total_uah` усіх замовлень за **грудень 2025** — використай `BETWEEN`.",
+      "starter": "SELECT order_id, order_date, total_uah\nFROM orders\nWHERE ",
+      "reference": "SELECT order_id, order_date, total_uah FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31'",
+      "hints": [
+        "Потрібен діапазон дат від першого до останнього дня грудня по колонці order_date.",
+        "order_date BETWEEN '…' AND '…' — дати в лапках у форматі 'РРРР-ММ-ДД'. У грудні 31 день.",
+        "Приклад на іншій таблиці: SELECT * FROM customers WHERE registered_at BETWEEN '2024-06-01' AND '2024-06-30' — клієнти, що зареєструвалися в червні 2024."
+      ],
+      "success": "3 416 замовлень за місяць. Запам'ятай це число: у тижні 2 ти побачиш, що грудень — один із найсильніших місяців року."
+    },
+    {
+      "id": "m1-d3-05",
+      "type": "choice",
+      "title": "Передбач результат: межі BETWEEN",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Скільки рядків поверне запит:\n`SELECT * FROM t WHERE total_uah BETWEEN 1000 AND 2000`",
+      "table": {
+        "columns": ["order_id", "total_uah"],
+        "rows": [[1, 999], [2, 1000], [3, 1500], [4, 2000], [5, 2001]]
+      },
+      "options": [
+        { "text": "1", "correct": false, "explain": "Лише 1500 — це якби межі не входили. BETWEEN їх включає." },
+        { "text": "2", "correct": false, "explain": "Перевір межі: і 1000, і 2000 входять у діапазон." },
+        { "text": "3", "correct": true, "explain": "Так: 1000, 1500 і 2000. А 999 і 2001 — за межами." },
+        { "text": "5", "correct": false, "explain": "999 менше за 1000, а 2001 більше за 2000 — вони не підходять." }
+      ]
+    },
+    {
+      "id": "m1-d3-06",
+      "type": "card",
+      "title": "LIKE і ILIKE: пошук за шматком тексту",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Іноді точної назви не знаєш. Олена каже: «Знайди всі павербанки» — а в назвах ще бренд, модель, ємність.",
+        "`LIKE` шукає за шаблоном. `%` — будь-яка кількість будь-яких символів, `_` — рівно один символ.\n`'Павербанк%'` — починається з «Павербанк». `'%мАг%'` — містить «мАг» будь-де.",
+        "`LIKE` розрізняє великі й малі літери: `'%павербанк%'` не знайде «Павербанк». `ILIKE` — той самий пошук, але регістр ігнорує. Це особливість PostgreSQL."
+      ],
+      "question": {
+        "prompt": "Який шаблон знайде всі назви, що **закінчуються** на «Pro»?",
+        "options": [
+          { "text": "LIKE '%Pro'", "correct": true, "explain": "Так: спершу будь-що (%), а в кінці — Pro." },
+          { "text": "LIKE 'Pro%'", "correct": false, "explain": "Це назви, що починаються з Pro." },
+          { "text": "LIKE '%Pro%'", "correct": false, "explain": "Так знайдуться всі назви, де Pro є будь-де, — і в середині теж." },
+          { "text": "LIKE '_Pro'", "correct": false, "explain": "_ — рівно один символ. Знайде лише чотирилітерні назви на зразок «XPro»." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d3-07",
+      "type": "sql",
+      "title": "Знайди помилку: де павербанки?",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Колега шукав усі товари, в назві яких є слово «павербанк», і отримав **0 рядків**, хоча павербанки в магазині точно є. Запусти, знайди помилку й виправ. Потрібні колонки: `product_name`, `price_uah`.",
+      "starter": "SELECT product_name, price_uah\nFROM products\nWHERE product_name LIKE '%павербанк%'",
+      "reference": "SELECT product_name, price_uah FROM products WHERE product_name ILIKE '%павербанк%'",
+      "hints": [
+        "Запит не падає, але рядків 0. Порівняй, як слово записане в даних і в умові.",
+        "У назвах «Павербанк» пишеться з великої літери, а LIKE розрізняє регістр. Заміни LIKE на ILIKE.",
+        "Приклад на іншій таблиці: SELECT full_name FROM customers WHERE full_name ILIKE '%петр%' — знайде і «Петро Шевчук», і «Олександр Петренко»."
+      ],
+      "success": "17 павербанків. ILIKE — звичка аналітика: у живих даних хтось напише «павербанк», хтось «ПАВЕРБАНК»."
+    },
+    {
+      "id": "m1-d3-08",
+      "type": "card",
+      "title": "NULL — «значення невідоме»",
+      "minutes": 2,
+      "device": "any",
+      "screens": [
+        "У деяких клітинках немає значення — там **NULL**. Наприклад, `delivery_date` у замовлення, яке ще не доставили.",
+        "NULL — не нуль і не порожній текст. Це «невідомо». Порівняння `= NULL` завжди дає «невідомо», тому `WHERE delivery_date = NULL` поверне **0 рядків**.",
+        "Правильно: `WHERE delivery_date IS NULL` — значення немає; `IS NOT NULL` — значення є."
+      ],
+      "question": {
+        "prompt": "Як знайти замовлення, у яких дата доставки **заповнена**?",
+        "options": [
+          { "text": "WHERE delivery_date IS NOT NULL", "correct": true, "explain": "Так. IS NOT NULL — значення є." },
+          { "text": "WHERE delivery_date <> NULL", "correct": false, "explain": "Будь-яке порівняння з NULL через = або <> дає «невідомо» — 0 рядків." },
+          { "text": "WHERE delivery_date <> 0", "correct": false, "explain": "Дата — не число, а NULL — не нуль. База видасть помилку типу." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d3-09",
+      "type": "sql",
+      "title": "Замовлення без дати доставки",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Олена хоче бачити замовлення, які **ще не мають дати доставки**. Виведи `order_id`, `order_date`, `status`, `delivery_date`.",
+      "starter": "SELECT order_id, order_date, status, delivery_date\nFROM orders\nWHERE ",
+      "reference": "SELECT order_id, order_date, status, delivery_date FROM orders WHERE delivery_date IS NULL",
+      "hints": [
+        "Дати доставки немає — це NULL у колонці delivery_date.",
+        "З NULL не працює знак «=». Потрібні два слова: IS NULL.",
+        "Приклад на іншій таблиці: SELECT * FROM orders WHERE promo_code_id IS NULL — замовлення без промокоду."
+      ],
+      "success": "Подивись на колонку status у результаті — у наступній вправі вона знадобиться."
+    },
+    {
+      "id": "m1-d3-10",
+      "type": "choice",
+      "title": "Чому дата доставки порожня?",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Запусти запит і подивись на статуси. Чому в цих замовлень немає дати доставки?",
+      "sandbox": "SELECT order_id, status, delivery_method, delivery_date FROM orders WHERE delivery_date IS NULL LIMIT 30",
+      "options": [
+        { "text": "Замовлення скасоване (cancelled) або ще в дорозі (in_transit)", "correct": true, "explain": "Так. NULL тут — не помилка, а нормальний стан: доставки не було або ще не було. Аналітик завжди питає себе, звідки взявся NULL, перш ніж рахувати." },
+        { "text": "Це помилка в базі, такі рядки треба видалити", "correct": false, "explain": "Ні: скасоване замовлення — теж важлива інформація. Видалиш — і не порахуєш, скільки замовлень скасовують." },
+        { "text": "Це самовивіз — його не доставляють", "correct": false, "explain": "Подивись на delivery_method: там і «Нова пошта», і «Укрпошта». У доставлених самовивозів дата є." },
+        { "text": "Клієнт не вказав адресу", "correct": false, "explain": "Про адресу в даних нічого немає. Відповідь видно в колонці status." }
+      ]
+    },
+    {
+      "id": "m1-d3-11",
+      "type": "parsons",
+      "title": "Збери запит: нові клієнти з трьох міст",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Збери запит: **ім'я і місто** клієнтів з **Одеси, Харкова або Дніпра**, які зареєструвалися **у 2025 році**. Є зайві блоки.",
+      "blocks": [
+        "SELECT full_name, city",
+        "FROM customers",
+        "WHERE city IN ('Одеса', 'Харків', 'Дніпро')",
+        "AND registered_at BETWEEN '2025-01-01' AND '2025-12-31'"
+      ],
+      "distractors": [
+        "WHERE city = ('Одеса', 'Харків', 'Дніпро')",
+        "AND registered_at BETWEEN '2025-12-31' AND '2025-01-01'",
+        "OR registered_at BETWEEN '2025-01-01' AND '2025-12-31'"
+      ],
+      "reference": "SELECT full_name, city FROM customers WHERE city IN ('Одеса', 'Харків', 'Дніпро') AND registered_at BETWEEN '2025-01-01' AND '2025-12-31'",
+      "hints": [
+        "Обидві умови мають виконуватися разом — AND, не OR.",
+        "Перелік міст — через IN. У BETWEEN менша дата йде першою.",
+        "Схожий запит на іншій таблиці: SELECT product_name FROM products WHERE brand IN ('Bosch', 'Tefal') AND price_uah BETWEEN 1000 AND 3000"
+      ]
+    },
+    {
+      "id": "m1-d3-12",
+      "type": "choice",
+      "title": "Повтор: AND, OR і дужки",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Як правильно знайти замовлення **понад 5000 грн**, які скасовані **або** повернені?",
+      "options": [
+        { "text": "WHERE total_uah > 5000 AND (status = 'cancelled' OR status = 'returned')", "correct": true, "explain": "Так: дужки об'єднують OR, а сума діє на обидва статуси." },
+        { "text": "WHERE total_uah > 5000 AND status = 'cancelled' OR status = 'returned'", "correct": false, "explain": "AND виконується раніше: у результат потраплять усі повернені, навіть на 100 грн." },
+        { "text": "WHERE total_uah > 5000 AND status IN ('cancelled' OR 'returned')", "correct": false, "explain": "У IN значення перелічують через кому: IN ('cancelled', 'returned'). OR усередині — помилка." }
+      ]
+    }
+  ]
+}

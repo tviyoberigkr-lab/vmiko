@@ -1,0 +1,186 @@
+{
+  "id": "m1-d8",
+  "module": "М1",
+  "day": 8,
+  "title": "GROUP BY: рахуємо по групах",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d8-01",
+      "type": "card",
+      "title": "GROUP BY — порахувати для кожної групи",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Учора ти рахував одну виручку на весь магазин. Олена питає далі: «А **по кожному** способу доставки?»",
+        "`GROUP BY` розкладає рядки на купки з однаковим значенням, а агрегат рахує по кожній купці:\n`SELECT delivery_method, COUNT(*)\nFROM orders\nGROUP BY delivery_method`",
+        "Результат — **рядок на групу**: три способи доставки → три рядки.",
+        "Правило: усе в `SELECT` — або колонка з `GROUP BY`, або агрегат (`COUNT`, `SUM`…). Інакше база не знає, яке значення показати для групи."
+      ],
+      "question": {
+        "prompt": "Скільки рядків поверне `SELECT status, COUNT(*) FROM orders GROUP BY status`, якщо статусів чотири?",
+        "options": [
+          { "text": "4", "correct": true, "explain": "Так: рядок на кожен статус, і поруч кількість замовлень." },
+          { "text": "1", "correct": false, "explain": "Один рядок — без GROUP BY. З ним — рядок на групу." },
+          { "text": "Стільки, скільки замовлень", "correct": false, "explain": "GROUP BY згортає замовлення одного статусу в один рядок." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d8-02",
+      "type": "sql",
+      "title": "Виручка за кожен спосіб доставки",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Олена: «Скільки грошей приносить кожен спосіб доставки?» Виведи `delivery_method` і **виручку** — суму `total_uah` доставлених замовлень — за весь час.",
+      "starter": "SELECT delivery_method, \nFROM orders\nWHERE status = 'delivered'\n",
+      "reference": "SELECT delivery_method, SUM(total_uah) FROM orders WHERE status = 'delivered' GROUP BY delivery_method",
+      "hints": [
+        "Сума по кожному способу — агрегат плюс групування.",
+        "Допиши SUM(total_uah) у SELECT і в кінці GROUP BY delivery_method.",
+        "Приклад на іншій таблиці: SELECT category, SUM(price_uah) FROM products GROUP BY category"
+      ],
+      "success": "Нова пошта приносить удвічі більше грошей, ніж Укрпошта і самовивіз разом."
+    },
+    {
+      "id": "m1-d8-03",
+      "type": "sql",
+      "title": "Клієнти по містах",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Де живуть клієнти? Виведи `city` і **кількість клієнтів** у кожному місті.",
+      "starter": "",
+      "reference": "SELECT city, COUNT(*) FROM customers GROUP BY city",
+      "hints": [
+        "Таблиця customers, групи — міста, рахуємо рядки.",
+        "SELECT city, COUNT(*) FROM customers GROUP BY …",
+        "Приклад на іншій таблиці: SELECT brand, COUNT(*) FROM products GROUP BY brand — скільки товарів кожного бренду."
+      ],
+      "success": "Київ — понад чверть усіх клієнтів. Якщо Олена думає про пункт самовивозу, починати варто звідти."
+    },
+    {
+      "id": "m1-d8-04",
+      "type": "choice",
+      "title": "Передбач результат: GROUP BY",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Що поверне запит?\n`SELECT delivery_method, COUNT(*) FROM t GROUP BY delivery_method`",
+      "table": {
+        "columns": ["order_id", "delivery_method", "status"],
+        "rows": [[1, "Нова пошта", "delivered"], [2, "Укрпошта", "cancelled"], [3, "Нова пошта", "cancelled"], [4, "Нова пошта", "delivered"], [5, "Укрпошта", "delivered"], [6, "Нова пошта", "returned"]]
+      },
+      "options": [
+        { "text": "2 рядки: Нова пошта — 4, Укрпошта — 2", "correct": true, "explain": "Так: два різні способи — дві групи. Статус не впливає, бо групуємо лише за способом доставки." },
+        { "text": "6 рядків — по одному на замовлення", "correct": false, "explain": "GROUP BY згортає замовлення з однаковим способом в один рядок." },
+        { "text": "1 рядок: 6", "correct": false, "explain": "Так було б без GROUP BY." },
+        { "text": "5 рядків — за унікальними парами спосіб+статус", "correct": false, "explain": "Пари були б при GROUP BY delivery_method, status. Тут групуємо лише за способом." }
+      ]
+    },
+    {
+      "id": "m1-d8-05",
+      "type": "sql",
+      "title": "Знайди помилку: колонка поза GROUP BY",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Колега хотів порахувати замовлення **для кожної пари «спосіб доставки + статус»**, але база видає помилку. Прочитай її й виправ запит. Колонки: `delivery_method`, `status`, кількість.",
+      "starter": "SELECT delivery_method, status, COUNT(*)\nFROM orders\nGROUP BY delivery_method",
+      "reference": "SELECT delivery_method, status, COUNT(*) FROM orders GROUP BY delivery_method, status",
+      "hints": [
+        "Помилка каже: status має бути в GROUP BY або в агрегаті.",
+        "Додай status у GROUP BY через кому: GROUP BY delivery_method, status.",
+        "Приклад на іншій таблиці: SELECT city, acquisition_channel, COUNT(*) FROM customers GROUP BY city, acquisition_channel"
+      ],
+      "success": "Групувати можна за кількома колонками — тоді група це кожна унікальна комбінація."
+    },
+    {
+      "id": "m1-d8-06",
+      "type": "card",
+      "title": "Канал залучення: готовий рядок JOIN",
+      "minutes": 2,
+      "device": "any",
+      "screens": [
+        "Олена хоче знати середній чек по каналах реклами. Але суми лежать в `orders`, а канал — у `customers`. Їх треба склеїти за `customer_id`.",
+        "Це робить `JOIN` — його ми детально пройдемо в М2. Зараз він буде **вже написаний** у стартовому коді:\n`FROM orders o\nJOIN customers c ON c.customer_id = o.customer_id`\n`o` і `c` — короткі назви таблиць: `o.total_uah` — сума замовлення, `c.acquisition_channel` — канал клієнта."
+      ],
+      "question": {
+        "prompt": "Як після такого JOIN звернутися до каналу клієнта?",
+        "options": [
+          { "text": "c.acquisition_channel", "correct": true, "explain": "Так: c — коротка назва таблиці customers." },
+          { "text": "o.acquisition_channel", "correct": false, "explain": "o — це orders, а каналу в замовленнях немає." },
+          { "text": "customers(acquisition_channel)", "correct": false, "explain": "Так у SQL не пишуть. Таблиця й колонка з'єднуються крапкою." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d8-07",
+      "type": "sql",
+      "title": "Середній чек по каналах залучення",
+      "minutes": 5,
+      "device": "prefer_desktop",
+      "prompt": "Виведи **канал залучення** (`c.acquisition_channel`) і **середній чек** — середню `o.total_uah` доставлених замовлень — для кожного каналу. Рядки з JOIN і фільтром уже є: допиши `SELECT` і `GROUP BY`.",
+      "starter": "SELECT c.acquisition_channel, \nFROM orders o\nJOIN customers c ON c.customer_id = o.customer_id\nWHERE o.status = 'delivered'\nGROUP BY ",
+      "reference": "SELECT c.acquisition_channel, AVG(o.total_uah) FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'delivered' GROUP BY c.acquisition_channel",
+      "hints": [
+        "Середній чек — AVG від суми замовлення, групи — канали.",
+        "Після коми в SELECT: AVG(o.total_uah). Після GROUP BY: c.acquisition_channel.",
+        "Приклад на іншій таблиці: SELECT brand, AVG(price_uah) FROM products GROUP BY brand"
+      ],
+      "success": "Подивись на telegram — його рядок виділяється. Що це означає, розберемо в наступній вправі."
+    },
+    {
+      "id": "m1-d8-08",
+      "type": "choice",
+      "title": "Що означає результат по Telegram?",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Ось середній чек по каналах, відсортований. Який висновок для Олени чесний?",
+      "sandbox": "SELECT c.acquisition_channel, COUNT(*) AS orders_cnt, ROUND(AVG(o.total_uah), 2) AS avg_check FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'delivered' GROUP BY c.acquisition_channel ORDER BY avg_check DESC",
+      "options": [
+        { "text": "Клієнти з Telegram мають середній чек ≈8 869 грн — приблизно на 40 % більше, ніж в інших каналах (5 945–6 471 грн). Варто подивитися, що саме вони купують.", "correct": true, "explain": "Так: число, порівняння і наступне питання. Без твердження, що Telegram «робить» чек вищим." },
+        { "text": "Треба перевести всю рекламу в Telegram — там найбільші чеки.", "correct": false, "explain": "Середній чек — ще не прибуток. Ми не знаємо вартості реклами і того, як часто ці клієнти повертаються. У М2 побачиш, що повторних покупок у них менше." },
+        { "text": "Різниця випадкова, на неї не варто зважати.", "correct": false, "explain": "Понад 3 000 доставлених замовлень і +40 % — це не випадковий шум." },
+        { "text": "Клієнти з Telegram купують частіше за інших.", "correct": false, "explain": "Середній чек — це сума одного замовлення, а не частота покупок. Подивись на orders_cnt: замовлень у Telegram, навпаки, мало." }
+      ]
+    },
+    {
+      "id": "m1-d8-09",
+      "type": "parsons",
+      "title": "Збери запит: товари по категоріях",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Збери запит: для кожної **категорії** — **кількість товарів** і **середня ціна**. Є зайві блоки.",
+      "blocks": [
+        "SELECT category,",
+        "COUNT(*), AVG(price_uah)",
+        "FROM products",
+        "GROUP BY category"
+      ],
+      "distractors": [
+        "GROUP BY product_name",
+        "WHERE COUNT(*) > 0",
+        "COUNT(*) AVG(price_uah)"
+      ],
+      "reference": "SELECT category, COUNT(*), AVG(price_uah) FROM products GROUP BY category",
+      "hints": [
+        "Групувати треба за тією колонкою, яка стоїть у SELECT без агрегату.",
+        "Між агрегатами — кома. Агрегати в WHERE не пишуть.",
+        "Схожий запит на іншій таблиці: SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders GROUP BY delivery_method"
+      ]
+    },
+    {
+      "id": "m1-d8-10",
+      "type": "choice",
+      "title": "Повтор: COUNT(*) чи COUNT(колонка)",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Олена питає: «Скільки всього замовлень?» Що писати?",
+      "options": [
+        { "text": "COUNT(*)", "correct": true, "explain": "Так: рахує всі рядки, незалежно від NULL." },
+        { "text": "COUNT(delivery_date)", "correct": false, "explain": "Загубиш скасовані й ті, що в дорозі: у них дата доставки NULL." },
+        { "text": "SUM(order_id)", "correct": false, "explain": "Це сума номерів замовлень — число без сенсу." }
+      ]
+    }
+  ]
+}

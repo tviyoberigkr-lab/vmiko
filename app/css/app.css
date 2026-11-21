@@ -113,3 +113,10 @@ table.res th { position: sticky; top: 0; background: #f1eee6; font-weight: 700; 
   textarea.sql { min-height: 180px; }
 }
 @media (prefers-reduced-motion: reduce) { .progress > div { transition: none; } }
+
+/* Проєкт модуля і підсумкова картка (milestone) — день 12 М1 */
+.ex-project { display: inline-block; margin: 0 0 6px; padding: 3px 10px; border-radius: 999px; background: #e3efe9; color: var(--brand); font-size: .8rem; font-weight: 700; }
+.badge { text-align: center; background: var(--card); border: 2px solid var(--accent); border-radius: var(--r); padding: 24px 16px; }
+.badge-ico { font-size: 2.6rem; line-height: 1; color: var(--accent); }
+.badge-title { font-size: 1.25rem; font-weight: 800; margin: 10px 0 4px; }
+.badge-text { color: var(--muted); margin: 0; }

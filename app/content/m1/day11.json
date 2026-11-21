@@ -1,0 +1,252 @@
+{
+  "id": "m1-d11",
+  "module": "М1",
+  "day": 11,
+  "title": "Порядок виконання запиту. Читаємо чужий код",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d11-01",
+      "type": "card",
+      "title": "У якому порядку база виконує запит",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Пишемо ми в одному порядку: `SELECT … FROM … WHERE … GROUP BY … HAVING … ORDER BY … LIMIT`. А база виконує в іншому.",
+        "Порядок виконання:\n**FROM** (взяти таблицю) → **WHERE** (відібрати рядки) → **GROUP BY** (згрупувати) → **HAVING** (відібрати групи) → **SELECT** (порахувати колонки) → **ORDER BY** (відсортувати) → **LIMIT** (обрізати).",
+        "Звідси два наслідки, які пояснюють половину помилок: у `WHERE` ще немає назв з `AS` (бо `SELECT` пізніше), а в `ORDER BY` вони вже є."
+      ],
+      "question": {
+        "prompt": "Що база виконує раніше: WHERE чи SELECT?",
+        "options": [
+          {
+            "text": "WHERE",
+            "correct": true,
+            "explain": "Так: спершу відбирає рядки, потім рахує колонки з SELECT."
+          },
+          {
+            "text": "SELECT — він же написаний першим",
+            "correct": false,
+            "explain": "Написаний першим, а виконується п'ятим."
+          },
+          {
+            "text": "Одночасно",
+            "correct": false,
+            "explain": "Ні, етапи йдуть по черзі — і саме тому псевдоніми працюють не всюди."
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-d11-02",
+      "type": "choice",
+      "title": "Розстав етапи",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Який порядок **виконання** правильний?",
+      "options": [
+        {
+          "text": "FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT",
+          "correct": true,
+          "explain": "Так. Зручно запам'ятати: спершу звідки і що відібрати, потім групи, потім колонки, наприкінці — порядок і обрізання."
+        },
+        {
+          "text": "SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT",
+          "correct": false,
+          "explain": "Це порядок написання. Виконання починається з FROM."
+        },
+        {
+          "text": "FROM → GROUP BY → WHERE → HAVING → SELECT → ORDER BY → LIMIT",
+          "correct": false,
+          "explain": "WHERE працює з окремими рядками — до групування, а не після."
+        },
+        {
+          "text": "FROM → WHERE → SELECT → GROUP BY → HAVING → LIMIT → ORDER BY",
+          "correct": false,
+          "explain": "SELECT рахується після груп, а LIMIT — завжди останній: спершу сортуємо, потім обрізаємо."
+        }
+      ]
+    },
+    {
+      "id": "m1-d11-03",
+      "type": "sql",
+      "title": "Знайди помилку: псевдонім у WHERE",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Колега хотів показати товари з **маржею понад 2000 грн** і отримав помилку «column \"margin_uah\" does not exist». Виправ запит. Колонки: `product_name`, `margin_uah`.",
+      "starter": "SELECT product_name, price_uah - cost_uah AS margin_uah\nFROM products\nWHERE margin_uah > 2000",
+      "reference": "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products WHERE price_uah - cost_uah > 2000",
+      "hints": [
+        "WHERE виконується раніше за SELECT — у цей момент назви margin_uah ще не існує.",
+        "У WHERE повтори сам вираз: price_uah - cost_uah > 2000. AS у SELECT можна залишити.",
+        "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS full_sum FROM orders WHERE total_uah + discount_uah > 30000"
+      ],
+      "success": "Тепер ти не просто знаєш правило, а розумієш, звідки воно: порядок виконання."
+    },
+    {
+      "id": "m1-d11-04",
+      "type": "choice",
+      "title": "А чому в ORDER BY псевдонім працює?",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "`SELECT product_name, price_uah - cost_uah AS margin_uah FROM products ORDER BY margin_uah DESC` — працює без помилки. Чому?",
+      "options": [
+        {
+          "text": "ORDER BY виконується після SELECT, і назва margin_uah уже існує",
+          "correct": true,
+          "explain": "Так. Той самий порядок виконання, що забороняє псевдонім у WHERE, дозволяє його в ORDER BY."
+        },
+        {
+          "text": "ORDER BY — виняток, який треба просто запам'ятати",
+          "correct": false,
+          "explain": "Запам'ятовувати не треба — це прямо випливає з порядку виконання."
+        },
+        {
+          "text": "Бо в ORDER BY можна писати будь-що",
+          "correct": false,
+          "explain": "Ні: неіснуюча назва в ORDER BY теж дасть помилку."
+        }
+      ]
+    },
+    {
+      "id": "m1-d11-05",
+      "type": "choice",
+      "title": "Прочитай чужий запит",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Цей запит лишив колега, який звільнився. Олена питає: «Що він рахує?» Прочитай (можна запустити) і обери точний опис.",
+      "sandbox": "SELECT delivery_method,\n       COUNT(*) AS orders_cnt,\n       ROUND(AVG(total_uah), 0) AS avg_check\nFROM orders\nWHERE status = 'delivered'\n  AND order_date BETWEEN '2026-01-01' AND '2026-06-30'\nGROUP BY delivery_method\nHAVING COUNT(*) > 1000\nORDER BY avg_check DESC",
+      "options": [
+        {
+          "text": "Для доставлених замовлень першого півріччя 2026 рахує по кожному способу доставки кількість і середній чек, лишає способи, де понад 1000 замовлень, і сортує від найбільшого чека.",
+          "correct": true,
+          "explain": "Так. Читай у порядку виконання: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."
+        },
+        {
+          "text": "Показує способи доставки, де замовлення дорожчі за 1000 грн.",
+          "correct": false,
+          "explain": "HAVING COUNT(*) > 1000 — це кількість замовлень у групі, а не сума замовлення."
+        },
+        {
+          "text": "Рахує кількість і середній чек усіх замовлень першого півріччя 2026.",
+          "correct": false,
+          "explain": "Є фільтр status = 'delivered' — скасовані й повернені не враховуються."
+        },
+        {
+          "text": "Те саме, що перший варіант, але сортує від найменшого чека.",
+          "correct": false,
+          "explain": "DESC — від більшого до меншого."
+        }
+      ]
+    },
+    {
+      "id": "m1-d11-06",
+      "type": "sql",
+      "title": "Зміни запит колеги",
+      "minutes": 5,
+      "device": "prefer_desktop",
+      "prompt": "Олена просить той самий звіт, але **за весь 2025 рік** і лише для способів, де **понад 3000** доставлених замовлень. Усе інше (колонки, округлення, сортування) — як у колеги.",
+      "starter": "SELECT delivery_method,\n       COUNT(*) AS orders_cnt,\n       ROUND(AVG(total_uah), 0) AS avg_check\nFROM orders\nWHERE status = 'delivered'\n  AND order_date BETWEEN '2026-01-01' AND '2026-06-30'\nGROUP BY delivery_method\nHAVING COUNT(*) > 1000\nORDER BY avg_check DESC",
+      "reference": "SELECT delivery_method, COUNT(*) AS orders_cnt, ROUND(AVG(total_uah), 0) AS avg_check FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method HAVING COUNT(*) > 3000 ORDER BY avg_check DESC",
+      "hints": [
+        "Змінити треба лише два місця: період і поріг кількості.",
+        "Дати в BETWEEN → '2025-01-01' і '2025-12-31'; у HAVING → COUNT(*) > 3000.",
+        "Приклад на іншій таблиці: якщо в SELECT brand, COUNT(*) FROM products GROUP BY brand HAVING COUNT(*) > 20 треба поріг 25 — міняєш лише число в HAVING."
+      ],
+      "success": "Самовивіз випав: за 2025 рік у нього менше 3000 доставлених замовлень. Правити чужий запит, не ламаючи решту, — щоденна робота аналітика."
+    },
+    {
+      "id": "m1-d11-07",
+      "type": "sql",
+      "title": "Напиши запит за описом",
+      "minutes": 5,
+      "device": "prefer_desktop",
+      "prompt": "Олена: «Які бренди в нас найширше представлені і наскільки вони дорогі? Покажи бренди, у яких **понад 20 товарів**: бренд, кількість товарів і середню ціну — **від найдорожчих у середньому**». Середню ціну не округлюй або округли до копійок.",
+      "starter": "",
+      "reference": "SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand HAVING COUNT(*) > 20 ORDER BY AVG(price_uah) DESC",
+      "hints": [
+        "Розклади прохання на етапи: групи → фільтр груп → колонки → сортування.",
+        "GROUP BY brand, HAVING COUNT(*) > 20, ORDER BY AVG(price_uah) DESC.",
+        "Приклад на іншій таблиці: SELECT city, COUNT(*) FROM customers GROUP BY city HAVING COUNT(*) > 1000 ORDER BY COUNT(*) DESC"
+      ],
+      "success": "Ти перетворив фразу людини на запит — це головна навичка аналітика, решта — синтаксис."
+    },
+    {
+      "id": "m1-d11-08",
+      "type": "choice",
+      "title": "Передбач: псевдонім у HAVING",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Що станеться з цим запитом у PostgreSQL?\n`SELECT brand, AVG(price_uah) AS avg_price FROM products GROUP BY brand HAVING avg_price > 3000`",
+      "options": [
+        {
+          "text": "Помилка: HAVING виконується раніше за SELECT, назви avg_price ще немає",
+          "correct": true,
+          "explain": "Так. У HAVING повторюють вираз: HAVING AVG(price_uah) > 3000 — тоді запит спрацює. Можеш перевірити обидва варіанти в будь-якій SQL-вправі."
+        },
+        {
+          "text": "Поверне бренди із середньою ціною понад 3000",
+          "correct": false,
+          "explain": "Так поверне варіант з HAVING AVG(price_uah) > 3000. З avg_price у HAVING PostgreSQL видасть помилку."
+        },
+        {
+          "text": "Поверне 0 рядків",
+          "correct": false,
+          "explain": "До рядків справа не дійде: запит упаде з помилкою «column \"avg_price\" does not exist»."
+        }
+      ]
+    },
+    {
+      "id": "m1-d11-09",
+      "type": "choice",
+      "title": "Повтор: DATE_TRUNC",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Як згрупувати замовлення **по тижнях**?",
+      "options": [
+        {
+          "text": "GROUP BY DATE_TRUNC('week', order_date)",
+          "correct": true,
+          "explain": "Так: 'week' обрізає дату до понеділка її тижня."
+        },
+        {
+          "text": "GROUP BY order_date",
+          "correct": false,
+          "explain": "Це групування по днях — сотні рядків."
+        },
+        {
+          "text": "GROUP BY DATE_TRUNC(order_date, 'week')",
+          "correct": false,
+          "explain": "Порядок аргументів інший: спершу період, потім дата."
+        }
+      ]
+    },
+    {
+      "id": "m1-d11-10",
+      "type": "choice",
+      "title": "Повтор: WHERE чи HAVING",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Умова «лише замовлення 2025 року» в запиті з GROUP BY — куди?",
+      "options": [
+        {
+          "text": "У WHERE",
+          "correct": true,
+          "explain": "Так: дата — властивість рядка, відбираємо до групування. Так ще й швидше."
+        },
+        {
+          "text": "У HAVING",
+          "correct": false,
+          "explain": "У HAVING умови на групи (COUNT, SUM, AVG). Дата замовлення — умова на рядок."
+        },
+        {
+          "text": "У ORDER BY",
+          "correct": false,
+          "explain": "ORDER BY лише сортує, нічого не відбирає."
+        }
+      ]
+    }
+  ]
+}

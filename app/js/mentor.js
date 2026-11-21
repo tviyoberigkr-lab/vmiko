@@ -4,6 +4,7 @@
  *   рівень 1 — напрям (написаний автором, без ШІ, безкоштовно);
  *   рівень 2 — конкретне місце (автор, без ШІ);
  *   рівень 3 — ШІ з контекстом коду учня. Відкривається після 2 невдалих спроб; готового запиту не дає.
+ *              Поки ШІ вимкнений, рівень 3 — авторський «приклад на іншій таблиці» (hints[2]), якщо він є.
  *
  * Щоб підключити справжній ШІ: реалізувати aiHint() — виклик свого бекенду (Supabase Edge Function тощо),
  * НЕ напряму в API з браузера (ключ не можна класти в клієнт).
@@ -22,8 +23,18 @@ export function hintAvailability(exercise, exState) {
   ];
 }
 
+/**
+ * Звідки береться підказка 3: поки ШІ не підключений, а автор написав третю підказку
+ * («приклад на іншій таблиці», спека розд. 2, критерії М1) — показуємо її; інакше — ШІ (зараз заглушка).
+ */
+export function level3Source(exercise) {
+  return !AI_ENABLED && exercise.hints && exercise.hints[2] ? 'author' : 'ai';
+}
+
 export async function getHint(exercise, level, context) {
-  if (level <= 2) return { level, source: 'author', text: (exercise.hints || [])[level - 1] || 'Підказки для цього рівня немає.' };
+  if (level <= 2 || (level === 3 && level3Source(exercise) === 'author')) {
+    return { level, source: 'author', text: (exercise.hints || [])[level - 1] || 'Підказки для цього рівня немає.' };
+  }
   return aiHint(exercise, context);
 }
 

@@ -6,7 +6,7 @@
  * CoLaba Production
  */
 const HEAVY_VERSION = 'heavy-pglite-0.5.17-koshyk-1.0.0';
-const SHELL_VERSION = 'shell-v2';
+const SHELL_VERSION = 'shell-v3';
 const HEAVY = [
   'vendor/pglite/index.js',
   'vendor/pglite/chunk-BD5WXLQO.js', 'vendor/pglite/chunk-CTPU3OXM.js', 'vendor/pglite/chunk-KLBW4PNS.js',
@@ -18,7 +18,9 @@ const HEAVY = [
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/main.js', 'js/editor.js', 'js/storage.js', 'js/db.js', 'js/db-worker.js', 'js/sqlrunner.js', 'js/checker.js', 'js/mentor.js',
-  'content/index.json', 'content/m1/day1.json', 'content/m1/day2.json',
+  'content/index.json', 'content/m1/day1.json', 'content/m1/day2.json', 'content/m1/day3.json', 'content/m1/day4.json',
+  'content/m1/day5.json', 'content/m1/day6.json', 'content/m1/day7.json', 'content/m1/day8.json', 'content/m1/day9.json',
+  'content/m1/day10.json', 'content/m1/day11.json', 'content/m1/day12.json',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 

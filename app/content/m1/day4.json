@@ -1,0 +1,200 @@
+{
+  "id": "m1-d4",
+  "module": "М1",
+  "day": 4,
+  "title": "ORDER BY, DISTINCT, псевдоніми",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d4-01",
+      "type": "card",
+      "title": "ORDER BY — сортування",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Без сортування база віддає рядки в довільному порядку. Олена ж питає «що найдорожче?» — тут порядок і є відповіддю.",
+        "`ORDER BY price_uah` — від меншого до більшого (ASC, так за замовчуванням).\n`ORDER BY price_uah DESC` — від більшого до меншого.",
+        "**Топ-N** = сортування + обмеження:\n`SELECT … FROM products ORDER BY price_uah DESC LIMIT 10`\nПорядок слів: `WHERE` → `ORDER BY` → `LIMIT`."
+      ],
+      "question": {
+        "prompt": "Як отримати 3 **найдешевші** товари?",
+        "options": [
+          { "text": "ORDER BY price_uah LIMIT 3", "correct": true, "explain": "Так: від меншої ціни до більшої, перші три." },
+          { "text": "ORDER BY price_uah DESC LIMIT 3", "correct": false, "explain": "DESC — від більшого до меншого. Це три найдорожчі." },
+          { "text": "LIMIT 3 ORDER BY price_uah", "correct": false, "explain": "LIMIT завжди в самому кінці — така форма дасть помилку." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d4-02",
+      "type": "sql",
+      "title": "Топ-10 найдорожчих товарів",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Олена хоче знати, які товари найдорожчі в каталозі. Виведи `product_name`, `brand`, `price_uah` — **10 найдорожчих**, від найдорожчого.",
+      "starter": "SELECT product_name, brand, price_uah\nFROM products\n",
+      "reference": "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah DESC LIMIT 10",
+      "check": { "orderKey": [2] },
+      "hints": [
+        "Спершу відсортуй за ціною від більшої до меншої, потім обмеж кількість рядків.",
+        "ORDER BY price_uah DESC, а після нього LIMIT 10.",
+        "Приклад на іншій таблиці: SELECT order_id, total_uah FROM orders ORDER BY total_uah DESC LIMIT 3 — три найбільші замовлення."
+      ],
+      "success": "Кавоварки й пилососи — у топі за ціною. Чи вони ж найприбутковіші? Перевіримо в кінці модуля."
+    },
+    {
+      "id": "m1-d4-03",
+      "type": "choice",
+      "title": "LIMIT 5 із сортуванням і без",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Чим відрізняються ці два запити?\n`SELECT * FROM orders ORDER BY total_uah DESC LIMIT 5`\n`SELECT * FROM orders LIMIT 5`",
+      "options": [
+        { "text": "Перший дає 5 найбільших замовлень, другий — будь-які 5", "correct": true, "explain": "Так. Без ORDER BY база бере рядки в зручному їй порядку — завтра це можуть бути інші 5." },
+        { "text": "Нічим: LIMIT і так бере найбільші", "correct": false, "explain": "Ні, LIMIT лише обрізає. «Найбільші» з'являються тільки після ORDER BY … DESC." },
+        { "text": "Другий дає 5 найновіших замовлень", "correct": false, "explain": "Без сортування жодного гарантованого порядку немає — ні за датою, ні за номером." }
+      ]
+    },
+    {
+      "id": "m1-d4-04",
+      "type": "card",
+      "title": "DISTINCT — без повторів",
+      "minutes": 2,
+      "device": "any",
+      "screens": [
+        "У `customers` 20 000 рядків, а міст лише 24. `SELECT city FROM customers` поверне 20 000 рядків з повторами.",
+        "`SELECT DISTINCT city FROM customers` — кожне місто один раз.\nЯкщо колонок кілька, `DISTINCT` прибирає повтори **цілих рядків**: `SELECT DISTINCT city, acquisition_channel` — кожна унікальна пара."
+      ],
+      "question": {
+        "prompt": "Скільки рядків поверне `SELECT DISTINCT status FROM orders`, якщо статусів чотири?",
+        "options": [
+          { "text": "4", "correct": true, "explain": "Так: кожен статус один раз." },
+          { "text": "Стільки, скільки замовлень", "correct": false, "explain": "Так було б без DISTINCT." },
+          { "text": "1", "correct": false, "explain": "DISTINCT не рахує, а прибирає повтори. Різних значень — чотири." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d4-05",
+      "type": "choice",
+      "title": "Чому Івано-Франківськ перший?",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Запусти запит. Список міст відсортовано, але «Івано-Франківськ» і «Ірпінь» стоять **перед** «Біла Церква». Чому?",
+      "sandbox": "SELECT DISTINCT city FROM customers ORDER BY city",
+      "options": [
+        { "text": "База сортує текст за кодами символів, а в кодуванні українські «І» та «Ї» йдуть раніше, ніж «А»", "correct": true, "explain": "Так. Наша навчальна база порівнює літери за кодом (правило «C»). Сервер з українськими налаштуваннями відсортував би за абеткою. Тому порядок тексту в звітах перевіряй очима, а в задачах ми сортуємо за числами й датами." },
+        { "text": "Бо в цих містах найбільше клієнтів", "correct": false, "explain": "Ні: ORDER BY city сортує за назвою, а не за кількістю. Найбільше клієнтів у Києві." },
+        { "text": "ORDER BY сортує за датою, коли місто додали в базу", "correct": false, "explain": "ORDER BY сортує за значенням колонки, яку ти вказав, — тут за текстом назви." },
+        { "text": "Це помилка в даних", "correct": false, "explain": "Дані в порядку. Справа в тому, як база порівнює літери." }
+      ]
+    },
+    {
+      "id": "m1-d4-06",
+      "type": "sql",
+      "title": "Куди дійшла email-розсилка",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "У вересні 2026 Олена запустила email-розсилку. З яких **міст** прийшли нові клієнти з каналу **email**, що зареєструвалися **з 1 вересня 2026** (включно)? Кожне місто — **один раз**. Виведи лише `city`.",
+      "starter": "SELECT city\nFROM customers\nWHERE ",
+      "reference": "SELECT DISTINCT city FROM customers WHERE acquisition_channel = 'email' AND registered_at >= '2026-09-01'",
+      "hints": [
+        "Дві умови (канал і дата) плюс прибрати повтори міст.",
+        "Після SELECT додай DISTINCT; умови: acquisition_channel = 'email' AND registered_at >= '2026-09-01'.",
+        "Приклад на іншій таблиці: SELECT DISTINCT delivery_method FROM orders WHERE status = 'cancelled' — способи доставки, з якими бувають скасування."
+      ],
+      "success": "Список коротший за 24 міста — розсилка дійшла не всюди. Це вже тема для розмови з маркетологом."
+    },
+    {
+      "id": "m1-d4-07",
+      "type": "card",
+      "title": "AS — назви колонок для звіту",
+      "minutes": 2,
+      "device": "any",
+      "screens": [
+        "Олена не читає `total_uah`. Для звіту колонку можна перейменувати словом `AS`:\n`SELECT total_uah AS suma FROM orders`",
+        "Назва з пробілом, комою чи великими літерами — у **подвійних** лапках:\n`SELECT total_uah AS \"Сума, грн\" FROM orders`\nОдинарні лапки — для тексту в даних, подвійні — для назв."
+      ],
+      "question": {
+        "prompt": "Який запис дасть колонку з назвою «Дата замовлення»?",
+        "options": [
+          { "text": "order_date AS \"Дата замовлення\"", "correct": true, "explain": "Так: назва з пробілом — у подвійних лапках." },
+          { "text": "order_date AS 'Дата замовлення'", "correct": false, "explain": "В одинарних лапках — текстове значення, а не назва. PostgreSQL видасть помилку." },
+          { "text": "order_date AS Дата замовлення", "correct": false, "explain": "Без лапок пробіл розірве назву — синтаксична помилка." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d4-08",
+      "type": "sql",
+      "title": "Звіт: 5 найбільших замовлень грудня",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Запит уже знаходить 5 найбільших замовлень грудня 2025. Олена хоче вставити результат у звіт — **перейменуй колонки** точно так: `Номер`, `Дата`, `Сума, грн`.",
+      "starter": "SELECT order_id, order_date, total_uah\nFROM orders\nWHERE order_date BETWEEN '2025-12-01' AND '2025-12-31'\nORDER BY total_uah DESC\nLIMIT 5",
+      "reference": "SELECT order_id AS \"Номер\", order_date AS \"Дата\", total_uah AS \"Сума, грн\" FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31' ORDER BY total_uah DESC LIMIT 5",
+      "check": { "checkColumnNames": true, "orderKey": [2] },
+      "hints": [
+        "Дані вже правильні — змінити треба лише назви колонок після SELECT.",
+        "Після кожної колонки додай AS і нову назву в подвійних лапках. «Сума, грн» з комою — лапки обов'язкові.",
+        "Приклад на іншій таблиці: SELECT product_name AS \"Товар\", price_uah AS \"Ціна, грн\" FROM products LIMIT 3"
+      ],
+      "success": "Тепер таблицю можна віддати людині без технічної освіти — і вона зрозуміє її з першого погляду."
+    },
+    {
+      "id": "m1-d4-09",
+      "type": "parsons",
+      "title": "Збери запит: 10 найдешевших кабелів",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Збери запит: **назва і ціна** 10 **найдешевших** товарів категорії **«Кабелі та адаптери»**, від найдешевшого. Є зайві блоки.",
+      "blocks": [
+        "SELECT product_name, price_uah",
+        "FROM products",
+        "WHERE category = 'Кабелі та адаптери'",
+        "ORDER BY price_uah",
+        "LIMIT 10"
+      ],
+      "distractors": [
+        "ORDER BY price_uah DESC",
+        "WHERE category = 'Кабелі'",
+        "LIMIT 10 ORDER BY price_uah"
+      ],
+      "reference": "SELECT product_name, price_uah FROM products WHERE category = 'Кабелі та адаптери' ORDER BY price_uah LIMIT 10",
+      "check": { "orderKey": [1] },
+      "hints": [
+        "Порядок блоків: SELECT → FROM → WHERE → ORDER BY → LIMIT.",
+        "«Найдешевші» — сортування за зростанням, без DESC. Назва категорії має збігатися повністю.",
+        "Схожий запит на іншій таблиці: SELECT order_id, total_uah FROM orders WHERE status = 'delivered' ORDER BY total_uah LIMIT 5"
+      ]
+    },
+    {
+      "id": "m1-d4-10",
+      "type": "choice",
+      "title": "Повтор: BETWEEN",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Що поверне `WHERE order_date BETWEEN '2025-12-31' AND '2025-12-01'`?",
+      "options": [
+        { "text": "0 рядків: менша межа має йти першою", "correct": true, "explain": "Так. BETWEEN означає «від першого до другого». Від 31 до 1 грудня нічого немає." },
+        { "text": "Усі замовлення грудня — порядок меж не важливий", "correct": false, "explain": "Важливий: BETWEEN не переставляє межі сам." },
+        { "text": "Помилку", "correct": false, "explain": "Помилки не буде, і це підступно: запит просто поверне 0 рядків." }
+      ]
+    },
+    {
+      "id": "m1-d4-11",
+      "type": "choice",
+      "title": "Повтор: LIKE чи ILIKE",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "У даних є «Кабель Vinga S 35». Що знайде цей товар?",
+      "options": [
+        { "text": "product_name ILIKE '%vinga%'", "correct": true, "explain": "Так: ILIKE ігнорує регістр, а % з обох боків — «будь-де в назві»." },
+        { "text": "product_name LIKE '%vinga%'", "correct": false, "explain": "LIKE розрізняє регістр: «vinga» ≠ «Vinga»." },
+        { "text": "product_name = 'Vinga'", "correct": false, "explain": "= шукає точний збіг усієї назви, а назва довша." }
+      ]
+    }
+  ]
+}

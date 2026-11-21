@@ -1,0 +1,331 @@
+{
+  "_about": "Додаткові розв'язки для tools/test_content.js: pass — інші правильні записи (мають зараховуватися), fail — типові помилки учнів (не мають зараховуватися). Ключ — id вправи. CoLaba Production",
+  "m1-d3-02": {
+    "pass": [
+      "SELECT product_name, brand, price_uah FROM products WHERE brand = 'Xiaomi' OR brand = 'Anker' OR brand = 'Baseus'"
+    ],
+    "fail": [
+      "SELECT product_name, brand, price_uah FROM products WHERE brand IN ('xiaomi', 'anker', 'baseus')",
+      "SELECT product_name, brand, price_uah FROM products WHERE brand IN ('Xiaomi', 'Anker')"
+    ]
+  },
+  "m1-d3-04": {
+    "pass": [
+      "SELECT order_id, order_date, total_uah FROM orders WHERE order_date >= '2025-12-01' AND order_date < '2026-01-01'"
+    ],
+    "fail": [
+      "SELECT order_id, order_date, total_uah FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-30'",
+      "SELECT order_id, order_date, total_uah FROM orders WHERE order_date BETWEEN '2025-12-31' AND '2025-12-01'"
+    ]
+  },
+  "m1-d3-07": {
+    "pass": [
+      "SELECT product_name, price_uah FROM products WHERE product_name LIKE '%Павербанк%'",
+      "SELECT product_name, price_uah FROM products WHERE product_name ILIKE 'павербанк%'"
+    ],
+    "fail": [
+      "SELECT product_name, price_uah FROM products WHERE product_name = 'Павербанк'",
+      "SELECT product_name, price_uah FROM products WHERE category = 'Павербанки' AND price_uah > 1000"
+    ]
+  },
+  "m1-d3-09": {
+    "pass": [
+      "SELECT order_id, order_date, status, delivery_date FROM orders WHERE status IN ('cancelled', 'in_transit')"
+    ],
+    "fail": [
+      "SELECT order_id, order_date, status, delivery_date FROM orders WHERE delivery_date = NULL",
+      "SELECT order_id, order_date, status, delivery_date FROM orders WHERE status = 'cancelled'"
+    ]
+  },
+  "m1-d4-02": {
+    "pass": [
+      "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah DESC, product_name LIMIT 10"
+    ],
+    "fail": [
+      "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah LIMIT 10",
+      "SELECT product_name, brand, price_uah FROM products LIMIT 10"
+    ]
+  },
+  "m1-d4-06": {
+    "pass": [
+      "SELECT DISTINCT city FROM customers WHERE acquisition_channel = 'email' AND registered_at BETWEEN '2026-09-01' AND '2026-09-30'",
+      "SELECT city FROM customers WHERE acquisition_channel = 'email' AND registered_at >= '2026-09-01' GROUP BY city"
+    ],
+    "fail": [
+      "SELECT city FROM customers WHERE acquisition_channel = 'email' AND registered_at >= '2026-09-01'",
+      "SELECT DISTINCT city FROM customers WHERE acquisition_channel = 'email'"
+    ]
+  },
+  "m1-d4-08": {
+    "pass": [
+      "SELECT order_id AS \"Номер\", order_date AS \"Дата\", total_uah AS \"Сума, грн\" FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31' ORDER BY \"Сума, грн\" DESC LIMIT 5"
+    ],
+    "fail": [
+      "SELECT order_id AS \"Номер\", order_date AS \"Дата\", total_uah AS \"Сума\" FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31' ORDER BY total_uah DESC LIMIT 5",
+      "SELECT order_id AS Номер, order_date AS Дата, total_uah AS \"Сума, грн\" FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31' ORDER BY total_uah LIMIT 5"
+    ]
+  },
+  "m1-d4-09": {
+    "pass": [],
+    "fail": [
+      "SELECT product_name, price_uah FROM products WHERE category = 'Кабелі та адаптери' LIMIT 10"
+    ]
+  },
+  "m1-d5-02": {
+    "pass": [
+      "SELECT product_name, price_uah, cost_uah, -(cost_uah - price_uah) AS margin_uah FROM products"
+    ],
+    "fail": [
+      "SELECT product_name, price_uah, cost_uah, cost_uah - price_uah AS margin_uah FROM products"
+    ]
+  },
+  "m1-d5-03": {
+    "pass": [
+      "SELECT product_name, price_uah - cost_uah FROM products ORDER BY price_uah - cost_uah DESC LIMIT 10"
+    ],
+    "fail": [
+      "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products ORDER BY price_uah DESC LIMIT 10"
+    ]
+  },
+  "m1-d5-05": {
+    "pass": [
+      "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah) * 1.0 / price_uah AS margin_share FROM products",
+      "SELECT product_name, price_uah, cost_uah, ROUND((price_uah - cost_uah)::numeric / price_uah, 2) AS margin_share FROM products",
+      "SELECT product_name, price_uah, cost_uah, 1 - cost_uah::numeric / price_uah AS margin_share FROM products"
+    ],
+    "fail": [
+      "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah) / price_uah AS margin_share FROM products",
+      "SELECT product_name, price_uah, cost_uah, ((price_uah - cost_uah) / price_uah)::numeric AS margin_share FROM products",
+      "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah) * 100.0 / price_uah AS margin_share FROM products"
+    ]
+  },
+  "m1-d5-07": {
+    "pass": [
+      "SELECT product_name, price_uah, CASE WHEN price_uah >= 2000 THEN 'преміум' WHEN price_uah >= 500 THEN 'середній' ELSE 'бюджет' END AS segment FROM products"
+    ],
+    "fail": [
+      "SELECT product_name, price_uah, CASE WHEN price_uah < 2000 THEN 'середній' WHEN price_uah < 500 THEN 'бюджет' ELSE 'преміум' END AS segment FROM products"
+    ]
+  },
+  "m1-d6-05": {
+    "pass": [
+      "SELECT order_id, order_date, total_uah FROM orders WHERE delivery_method = 'Укрпошта' AND status = 'delivered' AND order_date >= '2025-10-01' AND order_date <= '2025-12-31' AND total_uah > 10000 ORDER BY total_uah DESC, order_id"
+    ],
+    "fail": [
+      "SELECT order_id, order_date, total_uah FROM orders WHERE delivery_method = 'Укрпошта' AND status = 'delivered' AND order_date BETWEEN '2025-10-01' AND '2025-12-31' AND total_uah >= 10000 ORDER BY total_uah",
+      "SELECT order_id, order_date, total_uah FROM orders WHERE delivery_method = 'Укрпошта' AND order_date BETWEEN '2025-10-01' AND '2025-12-31' AND total_uah > 10000 ORDER BY total_uah DESC"
+    ]
+  },
+  "m1-d6-06": {
+    "pass": [
+      "SELECT order_id, status, order_date FROM orders WHERE status IN ('cancelled', 'returned') AND order_date >= '2026-01-01'"
+    ],
+    "fail": []
+  },
+  "m1-d6-07": {
+    "pass": [
+      "SELECT product_name, category, price_uah - cost_uah AS margin_uah FROM products WHERE (category = 'Павербанки' OR category = 'Зарядні пристрої') AND price_uah - cost_uah > 300 ORDER BY 3 DESC"
+    ],
+    "fail": [
+      "SELECT product_name, category, price_uah - cost_uah AS margin_uah FROM products WHERE category = 'Павербанки' OR category = 'Зарядні пристрої' AND price_uah - cost_uah > 300 ORDER BY margin_uah DESC"
+    ]
+  },
+  "m1-d6-09": {
+    "pass": [
+      "SELECT order_id, order_date, delivery_method, total_uah FROM orders WHERE status = 'cancelled' AND order_date >= '2026-07-01' AND total_uah > 3000 ORDER BY total_uah DESC"
+    ],
+    "fail": [
+      "SELECT order_id, order_date, delivery_method, total_uah FROM orders WHERE status = 'cancelled' AND order_date BETWEEN '2026-07-01' AND '2026-09-30' AND total_uah > 3000",
+      "SELECT order_id, order_date, delivery_method, total_uah FROM orders WHERE status = 'cancelled' AND order_date BETWEEN '2026-07-01' AND '2026-09-30' AND total_uah > 3000 ORDER BY total_uah",
+      "SELECT order_id, order_date, delivery_method, total_uah FROM orders WHERE status = 'cancelled' AND order_date BETWEEN '2026-06-01' AND '2026-09-30' AND total_uah > 3000 ORDER BY total_uah DESC"
+    ]
+  },
+  "m1-d7-02": {
+    "pass": [
+      "SELECT COUNT(order_id) FROM orders"
+    ],
+    "fail": [
+      "SELECT COUNT(delivery_date) FROM orders",
+      "SELECT COUNT(DISTINCT customer_id) FROM orders"
+    ]
+  },
+  "m1-d7-04": {
+    "pass": [
+      "SELECT SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date >= '2025-01-01' AND order_date < '2026-01-01'",
+      "SELECT ROUND(SUM(total_uah), 2) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' AND status = 'delivered'"
+    ],
+    "fail": [
+      "SELECT SUM(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31'",
+      "SELECT SUM(total_uah) FROM orders WHERE status <> 'cancelled' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'"
+    ]
+  },
+  "m1-d7-05": {
+    "pass": [
+      "SELECT ROUND(AVG(total_uah), 2) FROM orders WHERE status = 'delivered'",
+      "SELECT SUM(total_uah) / COUNT(*) FROM orders WHERE status = 'delivered'"
+    ],
+    "fail": [
+      "SELECT AVG(total_uah) FROM orders",
+      "SELECT ROUND(AVG(total_uah)) FROM orders WHERE status = 'delivered'"
+    ]
+  },
+  "m1-d7-08": {
+    "pass": [
+      "SELECT COUNT(order_id), COUNT(delivery_date) FROM orders"
+    ],
+    "fail": [
+      "SELECT COUNT(*), COUNT(*) FROM orders"
+    ]
+  },
+  "m1-d7-09": {
+    "pass": [],
+    "fail": [
+      "SELECT COUNT(customer_id) FROM orders",
+      "SELECT COUNT(*) FROM customers"
+    ]
+  },
+  "m1-d8-02": {
+    "pass": [
+      "SELECT delivery_method, SUM(total_uah) AS revenue FROM orders WHERE status = 'delivered' GROUP BY 1 ORDER BY revenue DESC"
+    ],
+    "fail": [
+      "SELECT delivery_method, SUM(total_uah) FROM orders GROUP BY delivery_method",
+      "SELECT delivery_method, COUNT(*) FROM orders WHERE status = 'delivered' GROUP BY delivery_method"
+    ]
+  },
+  "m1-d8-05": {
+    "pass": [
+      "SELECT delivery_method, status, COUNT(*) FROM orders GROUP BY status, delivery_method"
+    ],
+    "fail": [
+      "SELECT delivery_method, COUNT(*) FROM orders GROUP BY delivery_method"
+    ]
+  },
+  "m1-d8-07": {
+    "pass": [
+      "SELECT c.acquisition_channel, ROUND(AVG(o.total_uah), 2) FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'delivered' GROUP BY c.acquisition_channel ORDER BY 2 DESC"
+    ],
+    "fail": [
+      "SELECT c.acquisition_channel, AVG(o.total_uah) FROM orders o JOIN customers c ON c.customer_id = o.customer_id GROUP BY c.acquisition_channel",
+      "SELECT c.acquisition_channel, SUM(o.total_uah) FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'delivered' GROUP BY c.acquisition_channel"
+    ]
+  },
+  "m1-d9-03": {
+    "pass": [
+      "SELECT DATE_TRUNC('month', order_date)::date AS month, COUNT(*) FROM orders WHERE order_date >= '2025-01-01' AND order_date < '2026-01-01' GROUP BY 1 ORDER BY 1"
+    ],
+    "fail": [
+      "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY COUNT(*) DESC",
+      "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month"
+    ]
+  },
+  "m1-d9-04": {
+    "pass": [
+      "SELECT DATE_TRUNC('month', order_date)::date, SUM(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' AND status = 'delivered' GROUP BY 1 ORDER BY 1"
+    ],
+    "fail": [
+      "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month"
+    ]
+  },
+  "m1-d9-07": {
+    "pass": [
+      "SELECT DATE_TRUNC('month', order_date)::date AS month, COUNT(*) FROM orders WHERE promo_code_id IN (5) GROUP BY 1 ORDER BY 1"
+    ],
+    "fail": [
+      "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE promo_code_id = 2 GROUP BY month ORDER BY month",
+      "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(promo_code_id) FROM orders WHERE order_date BETWEEN '2025-03-01' AND '2025-04-30' GROUP BY month ORDER BY month"
+    ]
+  },
+  "m1-d10-02": {
+    "pass": [
+      "SELECT city, COUNT(customer_id) FROM customers GROUP BY city HAVING COUNT(customer_id) > 500 ORDER BY 2 DESC"
+    ],
+    "fail": [
+      "SELECT city, COUNT(*) FROM customers GROUP BY city"
+    ]
+  },
+  "m1-d10-05": {
+    "pass": [
+      "SELECT category, AVG(1 - cost_uah::numeric / price_uah) AS m FROM products GROUP BY category HAVING AVG(1 - cost_uah::numeric / price_uah) > 0.3"
+    ],
+    "fail": [
+      "SELECT category, AVG((price_uah - cost_uah) / price_uah) FROM products GROUP BY category HAVING AVG((price_uah - cost_uah)::numeric / price_uah) > 0.3",
+      "SELECT category, AVG((price_uah - cost_uah)::numeric / price_uah) FROM products GROUP BY category"
+    ]
+  },
+  "m1-d10-06": {
+    "pass": [
+      "SELECT COUNT(order_id), SUM(total_uah) FROM orders WHERE order_date >= '2025-01-01' AND order_date < '2026-01-01' AND status = 'delivered'"
+    ],
+    "fail": [
+      "SELECT COUNT(*), SUM(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31'"
+    ]
+  },
+  "m1-d10-07": {
+    "pass": [
+      "SELECT DATE_TRUNC('quarter', order_date)::date AS q, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date >= '2025-01-01' AND order_date < '2026-01-01' GROUP BY 1 ORDER BY 1"
+    ],
+    "fail": [
+      "SELECT DATE_TRUNC('month', order_date) AS q, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY q ORDER BY q"
+    ]
+  },
+  "m1-d10-08": {
+    "pass": [
+      "SELECT delivery_method, COUNT(*) AS n, ROUND(AVG(total_uah), 2) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method ORDER BY n DESC"
+    ],
+    "fail": [
+      "SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method ORDER BY COUNT(*) DESC",
+      "SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method ORDER BY AVG(total_uah) DESC"
+    ]
+  },
+  "m1-d11-03": {
+    "pass": [
+      "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products WHERE price_uah > cost_uah + 2000"
+    ],
+    "fail": [
+      "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products WHERE price_uah > 2000"
+    ]
+  },
+  "m1-d11-06": {
+    "pass": [
+      "SELECT delivery_method, COUNT(*) AS orders_cnt, ROUND(AVG(total_uah), 0) AS avg_check FROM orders WHERE status = 'delivered' AND order_date >= '2025-01-01' AND order_date < '2026-01-01' GROUP BY delivery_method HAVING COUNT(*) > 3000 ORDER BY avg_check DESC"
+    ],
+    "fail": [
+      "SELECT delivery_method, COUNT(*) AS orders_cnt, ROUND(AVG(total_uah), 0) AS avg_check FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method HAVING COUNT(*) > 1000 ORDER BY avg_check DESC"
+    ]
+  },
+  "m1-d11-07": {
+    "pass": [
+      "SELECT brand, COUNT(*) AS n, ROUND(AVG(price_uah), 2) AS avg_price FROM products GROUP BY brand HAVING COUNT(*) > 20 ORDER BY avg_price DESC"
+    ],
+    "fail": [
+      "SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand HAVING COUNT(*) > 20 ORDER BY COUNT(*) DESC",
+      "SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand HAVING COUNT(*) >= 20 ORDER BY AVG(price_uah) DESC"
+    ]
+  },
+  "m1-d12-02": {
+    "pass": [
+      "SELECT category, ROUND(AVG(price_uah - cost_uah), 2) AS m FROM products GROUP BY category ORDER BY m DESC LIMIT 5"
+    ],
+    "fail": [
+      "SELECT category, AVG(price_uah - cost_uah) AS m FROM products GROUP BY category ORDER BY m LIMIT 5",
+      "SELECT category, SUM(price_uah - cost_uah) AS m FROM products GROUP BY category ORDER BY m DESC LIMIT 5"
+    ]
+  },
+  "m1-d12-03": {
+    "pass": [
+      "SELECT category, ROUND(AVG(1 - cost_uah::numeric / price_uah), 3) AS s FROM products GROUP BY category ORDER BY s DESC LIMIT 5"
+    ],
+    "fail": [
+      "SELECT category, AVG((price_uah - cost_uah) / price_uah) AS s FROM products GROUP BY category ORDER BY s DESC LIMIT 5"
+    ]
+  },
+  "m1-d12-05": {
+    "pass": [
+      "SELECT DATE_TRUNC('month', order_date)::date, SUM(total_uah) FROM orders WHERE status = 'delivered' AND ((order_date >= '2024-02-01' AND order_date < '2024-05-01') OR (order_date >= '2025-02-01' AND order_date < '2025-05-01')) GROUP BY 1 ORDER BY 1"
+    ],
+    "fail": [
+      "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2024-02-01' AND '2024-04-30' OR order_date BETWEEN '2025-02-01' AND '2025-04-30' GROUP BY month ORDER BY month"
+    ]
+  }
+}

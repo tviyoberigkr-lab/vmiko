@@ -3,6 +3,16 @@
   "module": "М1. Перші відповіді з даних: SQL-основи",
   "days": [
     { "id": "m1-d1", "file": "content/m1/day1.json" },
-    { "id": "m1-d2", "file": "content/m1/day2.json" }
+    { "id": "m1-d2", "file": "content/m1/day2.json" },
+    { "id": "m1-d3", "file": "content/m1/day3.json" },
+    { "id": "m1-d4", "file": "content/m1/day4.json" },
+    { "id": "m1-d5", "file": "content/m1/day5.json" },
+    { "id": "m1-d6", "file": "content/m1/day6.json" },
+    { "id": "m1-d7", "file": "content/m1/day7.json" },
+    { "id": "m1-d8", "file": "content/m1/day8.json" },
+    { "id": "m1-d9", "file": "content/m1/day9.json" },
+    { "id": "m1-d10", "file": "content/m1/day10.json" },
+    { "id": "m1-d11", "file": "content/m1/day11.json" },
+    { "id": "m1-d12", "file": "content/m1/day12.json" }
   ]
 }

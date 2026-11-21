@@ -1,0 +1,187 @@
+{
+  "id": "m1-d5",
+  "module": "М1",
+  "day": 5,
+  "title": "Обчислювані колонки і CASE",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d5-01",
+      "type": "card",
+      "title": "Колонки, яких немає в таблиці",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Олена питає: «Скільки ми заробляємо на кожному товарі?» Колонки «маржа» в таблиці немає. Але є ціна й собівартість — маржу можна порахувати просто в запиті.",
+        "У `SELECT` можна писати арифметику: `+ - * /`.\n`SELECT product_name, price_uah - cost_uah AS margin_uah FROM products`",
+        "Обчислення робиться для **кожного рядка** окремо. Таблиця не змінюється — нова колонка існує лише в результаті. Дай їй зрозумілу назву через `AS`."
+      ],
+      "question": {
+        "prompt": "Що зробить `SELECT price_uah * 2 FROM products`?",
+        "options": [
+          { "text": "Покаже подвоєну ціну кожного товару, таблиця не зміниться", "correct": true, "explain": "Так. SELECT лише читає й обчислює, нічого не записує." },
+          { "text": "Подвоїть ціни в таблиці", "correct": false, "explain": "SELECT нічого не змінює в даних. Для змін є інші команди, і в навчальній базі вони заборонені." },
+          { "text": "Покаже кожен товар двічі", "correct": false, "explain": "Кількість рядків та сама — змінюється лише значення в колонці." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d5-02",
+      "type": "sql",
+      "title": "Маржа кожного товару",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Виведи для кожного товару `product_name`, `price_uah`, `cost_uah` і маржу в гривнях — **ціна мінус собівартість** — з назвою `margin_uah`.",
+      "starter": "SELECT product_name, price_uah, cost_uah\nFROM products",
+      "reference": "SELECT product_name, price_uah, cost_uah, price_uah - cost_uah AS margin_uah FROM products",
+      "hints": [
+        "Потрібна четверта колонка — різниця двох наявних.",
+        "Допиши через кому після cost_uah: price_uah - cost_uah AS margin_uah.",
+        "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS before_discount FROM orders LIMIT 5 — сума до знижки."
+      ],
+      "success": "Тепер ти бачиш маржу кожного товару — те, чого в таблиці взагалі не було."
+    },
+    {
+      "id": "m1-d5-03",
+      "type": "sql",
+      "title": "10 найприбутковіших товарів",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Які 10 товарів дають **найбільшу маржу в гривнях**? Виведи `product_name` і `margin_uah` (ціна мінус собівартість), від найбільшої маржі.",
+      "starter": "",
+      "reference": "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products ORDER BY margin_uah DESC LIMIT 10",
+      "check": { "orderKey": [1] },
+      "hints": [
+        "Обчисли маржу, як у попередній вправі, а потім відсортуй за нею.",
+        "У ORDER BY можна писати назву з AS: ORDER BY margin_uah DESC LIMIT 10.",
+        "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS full_sum FROM orders ORDER BY full_sum DESC LIMIT 3"
+      ],
+      "success": "Кавоварки знову попереду. Але гривні — це ще не вся правда: у наступних вправах порахуємо маржу у відсотках."
+    },
+    {
+      "id": "m1-d5-04",
+      "type": "choice",
+      "title": "Передбач результат: 7 / 2",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Що поверне PostgreSQL на `SELECT 7 / 2`? Подумай, потім запусти — там ще два варіанти поруч.",
+      "sandbox": "SELECT 7 / 2 AS a, 7.0 / 2 AS b, 7::numeric / 2 AS c",
+      "options": [
+        { "text": "3", "correct": true, "explain": "Так. Ціле поділити на ціле — ціле, дробова частина відкидається. Щоб отримати 3.5, хоча б одне число має бути дробовим: 7.0 / 2 або 7::numeric / 2." },
+        { "text": "3.5", "correct": false, "explain": "Так рахує калькулятор. А PostgreSQL ділить ціле на ціле націло — подивись на колонку a." },
+        { "text": "4", "correct": false, "explain": "Округлення немає — дробова частина просто відкидається." },
+        { "text": "Помилку", "correct": false, "explain": "Помилки не буде. Саме тому ця пастка небезпечна: число виходить, але неправильне." }
+      ]
+    },
+    {
+      "id": "m1-d5-05",
+      "type": "sql",
+      "title": "Знайди помилку: маржа 0 %",
+      "minutes": 5,
+      "device": "any",
+      "prompt": "Колега рахував **частку маржі в ціні** (від 0 до 1: 0.3 = 30 %), але в усіх товарів вийшов **0**. Знайди помилку й виправ. Колонки: `product_name`, `price_uah`, `cost_uah`, `margin_share`.",
+      "starter": "SELECT product_name, price_uah, cost_uah,\n       (price_uah - cost_uah) / price_uah AS margin_share\nFROM products",
+      "reference": "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah)::numeric / price_uah AS margin_share FROM products",
+      "hints": [
+        "price_uah і cost_uah — цілі числа. Згадай, що дає 7 / 2.",
+        "Перетвори чисельник на дробове число: (price_uah - cost_uah)::numeric / price_uah.",
+        "Приклад без цієї таблиці: SELECT 899 / 1000 дає 0, а SELECT 899::numeric / 1000 дає 0.899."
+      ],
+      "success": "Це класична помилка навіть досвідчених аналітиків: звіт із нулями, які ніхто не перевірив. Тепер ти її бачиш одразу."
+    },
+    {
+      "id": "m1-d5-06",
+      "type": "card",
+      "title": "CASE — колонка-категорія",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Олена мислить сегментами: «бюджетне», «середнє», «преміум». Такої колонки немає — її будують через `CASE`.",
+        "`CASE\n  WHEN price_uah < 500 THEN 'бюджет'\n  WHEN price_uah < 2000 THEN 'середній'\n  ELSE 'преміум'\nEND AS segment`",
+        "Умови перевіряються **згори вниз**, спрацьовує **перша правдива**. Тому товар за 300 грн отримає «бюджет», хоча 300 < 2000 теж правда. `ELSE` — для всього, що не підійшло."
+      ],
+      "question": {
+        "prompt": "Який сегмент отримає товар за **500 грн** у CASE з картки?",
+        "options": [
+          { "text": "середній", "correct": true, "explain": "Так: 500 < 500 — неправда, далі 500 < 2000 — правда. Отже, «середній»." },
+          { "text": "бюджет", "correct": false, "explain": "Умова строга: 500 < 500 — неправда." },
+          { "text": "преміум", "correct": false, "explain": "До ELSE не дійде: друга умова 500 < 2000 правдива." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d5-07",
+      "type": "sql",
+      "title": "Ціновий сегмент товару",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Додай до товарів сегмент. Виведи `product_name`, `price_uah` і `segment`: дешевше **500** грн — `'бюджет'`, від **500 до 1999** — `'середній'`, від **2000** — `'преміум'`.",
+      "starter": "SELECT product_name, price_uah,\n       CASE\n\n       END AS segment\nFROM products",
+      "reference": "SELECT product_name, price_uah, CASE WHEN price_uah < 500 THEN 'бюджет' WHEN price_uah < 2000 THEN 'середній' ELSE 'преміум' END AS segment FROM products",
+      "hints": [
+        "Три сегменти — дві умови WHEN і ELSE для решти.",
+        "WHEN price_uah < 500 THEN 'бюджет' WHEN price_uah < 2000 THEN 'середній' ELSE 'преміум' — між CASE і END.",
+        "Приклад на іншій таблиці: SELECT order_id, CASE WHEN discount_uah > 0 THEN 'зі знижкою' ELSE 'без знижки' END AS promo FROM orders LIMIT 5"
+      ],
+      "success": "Значення сегментів пиши точно як у завданні: 'Бюджет' і 'бюджет' для бази — різні слова."
+    },
+    {
+      "id": "m1-d5-08",
+      "type": "choice",
+      "title": "Передбач результат: порядок умов у CASE",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Колега переставив умови. Що отримає товар за **300 грн**?\n`CASE WHEN price_uah < 2000 THEN 'середній' WHEN price_uah < 500 THEN 'бюджет' ELSE 'преміум' END`",
+      "table": {
+        "columns": ["product_id", "price_uah"],
+        "rows": [[1, 300], [2, 1200], [3, 5000]]
+      },
+      "options": [
+        { "text": "середній", "correct": true, "explain": "Так: перша умова 300 < 2000 уже правдива, далі CASE не дивиться. «Бюджет» не отримає жоден товар — помилка, яку видно лише в даних." },
+        { "text": "бюджет", "correct": false, "explain": "До другої умови черга не дійде: спрацьовує перша правдива, а 300 < 2000 — правда." },
+        { "text": "преміум", "correct": false, "explain": "ELSE — лише якщо жодна умова не спрацювала. Тут спрацювала перша." },
+        { "text": "Помилку", "correct": false, "explain": "Синтаксично все правильно. Логіка зламана, але база про це не скаже." }
+      ]
+    },
+    {
+      "id": "m1-d5-09",
+      "type": "parsons",
+      "title": "Збери запит: великі й звичайні замовлення",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Збери запит: для замовлень **грудня 2025** — номер, сума і колонка `size`: від **5000** грн — `'велике'`, інакше `'звичайне'`. Є зайві блоки.",
+      "blocks": [
+        "SELECT order_id, total_uah,",
+        "CASE WHEN total_uah >= 5000 THEN 'велике' ELSE 'звичайне' END AS size",
+        "FROM orders",
+        "WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31'"
+      ],
+      "distractors": [
+        "CASE WHEN total_uah >= 5000 THEN велике ELSE звичайне END AS size",
+        "CASE total_uah >= 5000 THEN 'велике' END AS size",
+        "WHERE order_date BETWEEN '2025-12-31' AND '2025-12-01'"
+      ],
+      "reference": "SELECT order_id, total_uah, CASE WHEN total_uah >= 5000 THEN 'велике' ELSE 'звичайне' END AS size FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31'",
+      "hints": [
+        "CASE — це одна з колонок, тому він іде після SELECT і до FROM.",
+        "У CASE потрібні WHEN … THEN … ELSE … END, а текстові значення — в лапках.",
+        "Схожий запит на іншій таблиці: SELECT product_name, CASE WHEN price_uah >= 3000 THEN 'дорогий' ELSE 'доступний' END AS level FROM products"
+      ]
+    },
+    {
+      "id": "m1-d5-10",
+      "type": "choice",
+      "title": "Повтор: DISTINCT",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Як отримати список способів доставки без повторів?",
+      "options": [
+        { "text": "SELECT DISTINCT delivery_method FROM orders", "correct": true, "explain": "Так: DISTINCT одразу після SELECT." },
+        { "text": "SELECT delivery_method DISTINCT FROM orders", "correct": false, "explain": "DISTINCT пишеться одразу після SELECT, перед колонками. Тут PostgreSQL вирішить, що DISTINCT — нова назва колонки (псевдонім), і поверне всі рядки з повторами. Запусти — і побачиш колонку з назвою distinct." },
+        { "text": "SELECT delivery_method FROM orders LIMIT 3", "correct": false, "explain": "LIMIT бере будь-які 3 рядки — це можуть бути три «Нові пошти»." }
+      ]
+    }
+  ]
+}

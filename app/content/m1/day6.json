@@ -1,0 +1,173 @@
+{
+  "id": "m1-d6",
+  "module": "М1",
+  "day": 6,
+  "title": "Повторення тижня і перший чекпоінт проєкту",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d6-01",
+      "type": "choice",
+      "title": "Повтор: IN",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Що поверне `WHERE acquisition_channel NOT IN ('email', 'telegram')`?",
+      "options": [
+        { "text": "Клієнтів з усіх каналів, крім email і telegram", "correct": true, "explain": "Так: NOT IN — «будь-що, крім перелічених»." },
+        { "text": "Лише клієнтів з email і telegram", "correct": false, "explain": "Так поверне IN без NOT." },
+        { "text": "Помилку: NOT не можна поєднувати з IN", "correct": false, "explain": "Можна: NOT IN — звичайна конструкція SQL." }
+      ]
+    },
+    {
+      "id": "m1-d6-02",
+      "type": "choice",
+      "title": "Повтор: NULL",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Скільки рядків поверне `SELECT * FROM orders WHERE delivery_date = NULL`?",
+      "options": [
+        { "text": "0 — порівняння з NULL через = ніколи не буває правдою", "correct": true, "explain": "Так. Для NULL — лише IS NULL / IS NOT NULL." },
+        { "text": "Усі скасовані й ті, що в дорозі", "correct": false, "explain": "Так спрацював би IS NULL. А = NULL дає «невідомо» для кожного рядка." },
+        { "text": "Помилку", "correct": false, "explain": "Помилки не буде — і це підступно: просто 0 рядків." }
+      ]
+    },
+    {
+      "id": "m1-d6-03",
+      "type": "choice",
+      "title": "Повтор: топ-N",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Олена просить «5 найновіших замовлень». Який запит правильний?",
+      "options": [
+        { "text": "SELECT * FROM orders ORDER BY created_at DESC LIMIT 5", "correct": true, "explain": "Так: найновіші — сортування за часом від пізнішого до ранішого." },
+        { "text": "SELECT * FROM orders LIMIT 5", "correct": false, "explain": "Без ORDER BY — будь-які 5 рядків, необов'язково нові." },
+        { "text": "SELECT * FROM orders ORDER BY created_at LIMIT 5", "correct": false, "explain": "Без DESC сортування від найстаріших — це 5 перших замовлень в історії магазину." }
+      ]
+    },
+    {
+      "id": "m1-d6-04",
+      "type": "choice",
+      "title": "Повтор: ділення цілих",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Товар коштує 400 грн, маржа 100 грн. Що дасть `SELECT 100 / 400`?",
+      "options": [
+        { "text": "0", "correct": true, "explain": "Так: ціле на ціле — націло. Правильно: 100::numeric / 400 = 0.25." },
+        { "text": "0.25", "correct": false, "explain": "Так буде з ::numeric. Без нього PostgreSQL відкидає дробову частину." },
+        { "text": "25", "correct": false, "explain": "Відсотки самі не з'являються: для них треба ще помножити на 100." }
+      ]
+    },
+    {
+      "id": "m1-d6-05",
+      "type": "sql",
+      "title": "Великі доставки Укрпоштою в IV кварталі",
+      "minutes": 5,
+      "device": "any",
+      "prompt": "Олена порівнює перевізників. Знайди **доставлені** (`delivered`) замовлення **Укрпоштою** за **жовтень–грудень 2025** на суму **понад 10 000 грн**. Виведи `order_id`, `order_date`, `total_uah`, від найбільшої суми.",
+      "starter": "SELECT order_id, order_date, total_uah\nFROM orders\nWHERE ",
+      "reference": "SELECT order_id, order_date, total_uah FROM orders WHERE delivery_method = 'Укрпошта' AND status = 'delivered' AND order_date BETWEEN '2025-10-01' AND '2025-12-31' AND total_uah > 10000 ORDER BY total_uah DESC",
+      "check": { "orderKey": [2] },
+      "hints": [
+        "Чотири умови, усі через AND, і сортування за сумою.",
+        "delivery_method = 'Укрпошта', status = 'delivered', order_date BETWEEN '2025-10-01' AND '2025-12-31', total_uah > 10000; наприкінці ORDER BY total_uah DESC.",
+        "Приклад на іншій таблиці: SELECT * FROM customers WHERE city = 'Львів' AND acquisition_channel = 'google_ads' AND registered_at BETWEEN '2025-01-01' AND '2025-03-31' ORDER BY registered_at DESC"
+      ],
+      "success": "Кілька умов поспіль через AND — найчастіший запит у роботі аналітика."
+    },
+    {
+      "id": "m1-d6-06",
+      "type": "sql",
+      "title": "Знайди помилку: скасовані чи повернені",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Колега хотів показати замовлення **2026 року**, які **скасовані або повернені**. Але в результаті є й замовлення 2024–2025 років. Знайди помилку й виправ. Колонки: `order_id`, `status`, `order_date`.",
+      "starter": "SELECT order_id, status, order_date\nFROM orders\nWHERE status = 'cancelled' OR status = 'returned' AND order_date >= '2026-01-01'",
+      "reference": "SELECT order_id, status, order_date FROM orders WHERE (status = 'cancelled' OR status = 'returned') AND order_date >= '2026-01-01'",
+      "hints": [
+        "Запусти й подивись на дати скасованих замовлень. Згадай, що виконується раніше — AND чи OR.",
+        "Візьми в дужки дві умови статусу, щоб дата стосувалася обох. Або заміни їх на status IN (…).",
+        "Приклад на іншій таблиці: SELECT * FROM products WHERE (brand = 'Bosch' OR brand = 'Philips') AND price_uah > 5000"
+      ],
+      "success": "Ти щойно впіймав помилку, яка не дає жодного повідомлення. Її видно лише тоді, коли дивишся на результат."
+    },
+    {
+      "id": "m1-d6-07",
+      "type": "sql",
+      "title": "Прибуткові зарядки й павербанки",
+      "minutes": 5,
+      "device": "any",
+      "prompt": "Олена хоче поставити на головну сторінку зарядки й павербанки з **маржею понад 300 грн**. Виведи `product_name`, `category` і `margin_uah` (ціна мінус собівартість) для категорій **«Павербанки»** і **«Зарядні пристрої»**, від найбільшої маржі.",
+      "starter": "",
+      "reference": "SELECT product_name, category, price_uah - cost_uah AS margin_uah FROM products WHERE category IN ('Павербанки', 'Зарядні пристрої') AND price_uah - cost_uah > 300 ORDER BY margin_uah DESC",
+      "check": { "orderKey": [2] },
+      "hints": [
+        "Тут усе разом: обчислювана колонка, IN, умова на маржу і сортування.",
+        "У WHERE не можна використати назву margin_uah — повтори вираз: price_uah - cost_uah > 300. А в ORDER BY назва працює.",
+        "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS full_sum FROM orders WHERE status IN ('delivered', 'returned') AND total_uah + discount_uah > 20000 ORDER BY full_sum DESC"
+      ],
+      "success": "Чому в WHERE псевдонім не працює, а в ORDER BY — працює, розберемо в день 11."
+    },
+    {
+      "id": "m1-d6-08",
+      "type": "parsons",
+      "title": "Збери запит: клієнти з міст на «Ч»",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Збери запит: **ім'я і місто** клієнтів з міст, що **починаються на «Ч»**, які прийшли з **instagram** і зареєструвалися **у 2025 році**. Є зайві блоки.",
+      "blocks": [
+        "SELECT full_name, city",
+        "FROM customers",
+        "WHERE city LIKE 'Ч%'",
+        "AND acquisition_channel = 'instagram'",
+        "AND registered_at BETWEEN '2025-01-01' AND '2025-12-31'"
+      ],
+      "distractors": [
+        "WHERE city LIKE '%Ч'",
+        "AND acquisition_channel = instagram",
+        "OR acquisition_channel = 'instagram'"
+      ],
+      "reference": "SELECT full_name, city FROM customers WHERE city LIKE 'Ч%' AND acquisition_channel = 'instagram' AND registered_at BETWEEN '2025-01-01' AND '2025-12-31'",
+      "hints": [
+        "Три умови мають виконуватися разом — лише AND.",
+        "«Починається на Ч» — % стоїть після літери. Канал — текст у лапках.",
+        "Схожий запит на іншій таблиці: SELECT product_name FROM products WHERE product_name LIKE 'Фен%' AND brand = 'Philips'"
+      ]
+    },
+    {
+      "id": "m1-d6-09",
+      "type": "sql",
+      "title": "Чекпоінт тижня: великі скасовані замовлення",
+      "minutes": 6,
+      "device": "prefer_desktop",
+      "project": "Проєкт М1 · чекпоінт тижня 1",
+      "prompt": "Олена: «Дай мені список усіх **скасованих** замовлень за **останній квартал** із сумою **понад 3000 грн**, від найбільших». Останній квартал у даних — **липень–вересень 2026**. Виведи `order_id`, `order_date`, `delivery_method`, `total_uah`.",
+      "starter": "",
+      "reference": "SELECT order_id, order_date, delivery_method, total_uah FROM orders WHERE status = 'cancelled' AND order_date BETWEEN '2026-07-01' AND '2026-09-30' AND total_uah > 3000 ORDER BY total_uah DESC",
+      "check": { "orderKey": [3] },
+      "hints": [
+        "Розклади прохання Олени на частини: статус, період, сума, сортування.",
+        "status = 'cancelled', order_date BETWEEN '2026-07-01' AND '2026-09-30', total_uah > 3000, ORDER BY total_uah DESC.",
+        "Приклад на іншій таблиці: SELECT full_name, city, registered_at FROM customers WHERE acquisition_channel = 'referral' AND registered_at BETWEEN '2026-04-01' AND '2026-06-30' ORDER BY registered_at DESC"
+      ],
+      "success": "Перший робочий запит для Олени готовий. Наступна вправа — що з цим списком сказати."
+    },
+    {
+      "id": "m1-d6-10",
+      "type": "choice",
+      "title": "Чекпоінт тижня: що ти бачиш у списку?",
+      "minutes": 3,
+      "device": "any",
+      "project": "Проєкт М1 · чекпоінт тижня 1",
+      "prompt": "Ось той самий список. Яке речення для Олени найкраще? Добре речення спирається на число з даних, не вигадує причин і підказує, що робити далі.",
+      "sandbox": "SELECT order_id, order_date, delivery_method, total_uah FROM orders WHERE status = 'cancelled' AND order_date BETWEEN '2026-07-01' AND '2026-09-30' AND total_uah > 3000 ORDER BY total_uah DESC",
+      "options": [
+        { "text": "За липень–вересень 2026 скасовано 285 замовлень понад 3000 грн, найбільше — на 28 038 грн. Пропоную з'ясувати, на якому етапі їх скасовують: до оплати чи після відправки.", "correct": true, "explain": "Так: є конкретні числа з запиту, немає вигаданої причини, є наступний крок." },
+        { "text": "Клієнти скасовують, бо Нова пошта погано працює.", "correct": false, "explain": "Нова пошта часто трапляється в списку, бо нею їде більшість усіх замовлень. Причину з цього списку не видно — це здогадка, подана як факт." },
+        { "text": "Скасованих замовлень багато, це погано.", "correct": false, "explain": "Ні числа, ні дії. Олена не зрозуміє, що з цим робити." },
+        { "text": "Треба прибрати з сайту дорогі товари, бо їх скасовують.", "correct": false, "explain": "Різке рішення без доказів: ми не порівнювали дорогі й дешеві замовлення." }
+      ]
+    }
+  ]
+}

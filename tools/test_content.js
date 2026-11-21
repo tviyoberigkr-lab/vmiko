@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /*
- * Перевірка контенту уроків (app/content): структура, еталони на обох датасетах, стартовий код, Parsons.
+ * Перевірка контенту уроків (app/content): структура, еталони на обох датасетах, стартовий код, Parsons,
+ * три рівні підказок без готового запиту, посилання index.json на дні, додаткові розв'язки з tools/content_cases.json
+ * (інші правильні записи мають зараховуватися, типові помилки — ні).
  * Запуск: node tools/test_content.js
  * CoLaba Production
  */
@@ -24,19 +26,37 @@ function check(name, cond, detail) {
   await R.loadDataset(db, vis, R.VISIBLE);
   await R.loadDataset(db, JSON.parse(fs.readFileSync(path.join(root, 'app/data/koshyk_hidden.json'), 'utf8')), R.HIDDEN);
   const index = JSON.parse(fs.readFileSync(path.join(root, 'app/content/index.json'), 'utf8'));
+  const cases = JSON.parse(fs.readFileSync(path.join(__dirname, 'content_cases.json'), 'utf8'));
+  delete cases._about;
   const ids = new Set();
-  const TYPES = new Set(['card', 'choice', 'sql', 'parsons']);
-  for (const d of index.days) {
+  const exById = new Map();
+  const TYPES = new Set(['card', 'choice', 'sql', 'parsons', 'milestone']);
+  const norm = (s) => String(s).toLowerCase().replace(/[\s;]+/g, ' ').trim();
+
+  // index.json: кожен день має унікальний id, файл існує, дні йдуть по порядку
+  console.log('\n[index.json]');
+  check('index.json: є хоча б один день', Array.isArray(index.days) && index.days.length > 0);
+  check('index.json: id днів унікальні', new Set(index.days.map((d) => d.id)).size === index.days.length);
+  check('index.json: файли днів унікальні', new Set(index.days.map((d) => d.file)).size === index.days.length);
+  for (const d of index.days) check(`index.json: файл ${d.file} існує`, fs.existsSync(path.join(root, 'app', d.file)));
+  const swText = fs.readFileSync(path.join(root, 'app/sw.js'), 'utf8');
+  for (const d of index.days) check(`sw.js: ${d.file} є в офлайн-кеші`, swText.includes(`'${d.file}'`));
+
+  for (const [di, d] of index.days.entries()) {
+    if (!fs.existsSync(path.join(root, 'app', d.file))) continue;
     const day = JSON.parse(fs.readFileSync(path.join(root, 'app', d.file), 'utf8'));
     console.log(`\n[${day.id}] ${day.title} — ${day.exercises.length} вправ`);
     check(`${day.id}: id збігається з index.json`, day.id === d.id);
+    check(`${day.id}: номер дня = позиція в index.json (${di + 1})`, day.day === di + 1, day.day);
     check(`${day.id}: 8–12 вправ на день`, day.exercises.length >= 8 && day.exercises.length <= 12, day.exercises.length);
     check(`${day.id}: dataset_version = ${vis.meta.dataset_version}`, day.dataset_version === vis.meta.dataset_version);
     const total = day.exercises.reduce((s, e) => s + e.minutes, 0);
     console.log(`  сумарно ${total} хв`);
+    check(`${day.id}: порція ≈30 хв (25–40)`, total >= 25 && total <= 40, total);
+    check(`${day.id}: id вправ мають префікс дня`, day.exercises.every((e) => e.id.startsWith(day.id + '-')));
     for (const e of day.exercises) {
       const tag = e.id;
-      check(`${tag}: унікальний id`, !ids.has(e.id)); ids.add(e.id);
+      check(`${tag}: унікальний id`, !ids.has(e.id)); ids.add(e.id); exById.set(e.id, e);
       check(`${tag}: відомий тип`, TYPES.has(e.type), e.type);
       check(`${tag}: тривалість 1–7 хв`, e.minutes >= 1 && e.minutes <= 7, e.minutes);
       check(`${tag}: device any|prefer_desktop`, ['any', 'prefer_desktop'].includes(e.device));
@@ -46,10 +66,15 @@ function check(name, cond, detail) {
         check(`${tag}: рівно 1 правильний варіант`, opts.filter((o) => o.correct).length === 1);
         check(`${tag}: кожен варіант має пояснення`, opts.every((o) => o.explain && o.explain.length > 5));
       }
-      if (e.type === 'card') check(`${tag}: 1–5 екранів`, e.screens.length >= 1 && e.screens.length <= 5);
+      if (e.type === 'card' || e.type === 'milestone') check(`${tag}: 1–5 екранів`, Array.isArray(e.screens) && e.screens.length >= 1 && e.screens.length <= 5);
+      if (e.type === 'milestone') check(`${tag}: є бейдж (badge.title) і текст кнопки (cta)`, !!(e.badge && e.badge.title && e.cta));
+      if (e.project !== undefined) check(`${tag}: project — непорожній рядок`, typeof e.project === 'string' && e.project.trim().length > 0);
+      if (e.table) check(`${tag}: у міні-таблиці кожен рядок має стільки значень, скільки колонок`, e.table.rows.every((r) => r.length === e.table.columns.length));
       if (e.sandbox) { const r = await R.runReadOnly(db, e.sandbox, R.VISIBLE); check(`${tag}: sandbox-запит виконується`, r.ok, r.error); }
       if (e.type === 'sql' || e.type === 'parsons') {
-        check(`${tag}: має 2 авторські підказки`, Array.isArray(e.hints) && e.hints.length >= 2);
+        check(`${tag}: має 3 авторські підказки (напрям → місце → приклад)`, Array.isArray(e.hints) && e.hints.length === 3 && e.hints.every((h) => typeof h === 'string' && h.trim().length > 10));
+        // жодна підказка не містить готового еталонного запиту
+        check(`${tag}: підказки не містять готового еталону`, e.starterPasses || (e.hints || []).every((h) => !norm(h).includes(norm(e.reference))));
         const opt = C.optionsForExercise(e);
         const refSql = opt.mode === 'subset' ? e.check.referenceFull : e.reference;
         const rv = await R.runReadOnly(db, refSql, R.VISIBLE);
@@ -61,6 +86,7 @@ function check(name, cond, detail) {
           check(`${tag}: результати на видимих і прихованих різні (інакше прихований набір нічого не ловить)`, !same);
         }
         if (opt.mode === 'subset') check(`${tag}: subset має rowCount і referenceFull`, e.check.rowCount > 0 && !!e.check.referenceFull);
+        if (opt.orderKey) check(`${tag}: orderKey у межах колонок еталона`, rv.ok && opt.orderKey.every((k) => k >= 0 && k < rv.fields.length));
         const self = await R.checkExercise(db, e, e.reference);
         check(`${tag}: еталон проходить власну перевірку`, self.ok, JSON.stringify(self));
         if (e.type === 'sql' && e.starter && e.starter.trim()) {
@@ -83,6 +109,21 @@ function check(name, cond, detail) {
           }
         }
       }
+    }
+  }
+  // Додаткові розв'язки: інші правильні записи і типові помилки
+  console.log('\n[content_cases.json]');
+  for (const [id, c] of Object.entries(cases)) {
+    const e = exById.get(id);
+    check(`${id}: вправа з content_cases існує і є sql/parsons`, !!e && (e.type === 'sql' || e.type === 'parsons'));
+    if (!e) continue;
+    for (const sql of c.pass || []) {
+      const r = await R.checkExercise(db, e, sql);
+      check(`${id}: інший правильний запис зараховується — ${sql.slice(0, 70)}…`, r.ok, JSON.stringify(r).slice(0, 200));
+    }
+    for (const sql of c.fail || []) {
+      const r = await R.checkExercise(db, e, sql);
+      check(`${id}: типова помилка НЕ зараховується — ${sql.slice(0, 70)}…`, !r.ok, JSON.stringify(r).slice(0, 200));
     }
   }
   await db.close();

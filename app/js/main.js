@@ -6,7 +6,7 @@
 import { editorHtml, syncEditor, handleRunShortcut } from './editor.js';
 import { LocalStorageAdapter, MemoryAdapter, createProgressStore } from './storage.js';
 import { createDb } from './db.js';
-import { hintAvailability, getHint } from './mentor.js';
+import { hintAvailability, getHint, level3Source } from './mentor.js';
 import { explainPgError } from './checker.js';
 
 const $app = document.getElementById('app');
@@ -33,7 +33,7 @@ function shuffled(arr, seedStr) {
 }
 const STATUS_LABEL = { not_started: 'не почато', in_progress: 'в процесі', submitted: 'перевіряється', passed: 'зроблено', needs_retry: 'спробуй ще' };
 const STATUS_ICON = { not_started: '○', in_progress: '◐', submitted: '…', passed: '✓', needs_retry: '↻' };
-const TYPE_LABEL = { card: 'Картка', choice: 'Вибір', sql: 'SQL-задача', parsons: 'Збери з блоків' };
+const TYPE_LABEL = { card: 'Картка', choice: 'Вибір', sql: 'SQL-задача', parsons: 'Збери з блоків', milestone: 'Підсумок' };
 
 function dayProgress(day) {
   const done = day.exercises.filter((e) => store.exercise(e.id).status === 'passed').length;
@@ -68,7 +68,7 @@ function renderHome() {
     if (st.code && st.code.trim() && st.status !== 'passed') ctx += ' · твій код збережено';
     cont = `<section class="continue"><p class="ctx">${ctx}</p><a class="btn primary big" href="#/ex/${target.ex.id}" data-testid="continue">Продовжити</a></section>`;
   } else {
-    cont = `<section class="continue"><p class="ctx">Усі вправи двох днів виконано. Далі — день 3 (IN, BETWEEN, LIKE, IS NULL), він ще в роботі.</p></section>`;
+    cont = `<section class="continue"><p class="ctx">Усі вправи виконано (${state.days.length} ${plural(state.days.length, 'день', 'дні', 'днів')}). Повтори будь-яку вправу зі списку нижче.</p></section>`;
   }
   const days = state.days.map((day) => {
     const p = dayProgress(day);
@@ -125,6 +125,7 @@ function renderExercise(id) {
   else if (ex.type === 'choice') body = choiceBody(ex);
   else if (ex.type === 'sql') body = sqlBody(ex);
   else if (ex.type === 'parsons') body = parsonsBody(ex);
+  else if (ex.type === 'milestone') body = milestoneBody(ex);
 
   const next = nextUnpassed(day, idx);
   const done = passed ? `<section class="done" data-testid="done">
@@ -141,6 +142,7 @@ function renderExercise(id) {
     </header>
     <div class="progress thin"><div style="width:${Math.round((p.done / p.total) * 100)}%"></div></div>
     <main class="exercise type-${ex.type}" data-ex="${ex.id}">
+      ${ex.project ? `<p class="ex-project" data-testid="project">${esc(ex.project)}</p>` : ''}
       <p class="ex-kind">${TYPE_LABEL[ex.type]} · ~${ex.minutes} хв · <span class="st">${STATUS_LABEL[store.exercise(id).status]}</span></p>
       <h1>${esc(ex.title)}</h1>
       ${body}
@@ -177,6 +179,20 @@ function cardBody(ex) {
     ${st.status !== 'passed' ? `<button class="btn primary" data-act="check-choice" ${st.choice == null ? 'disabled' : ''}>Перевірити</button>` : ''}</div>`;
 }
 
+/** Підсумкова картка модуля: екрани як у картки, наприкінці бейдж і кнопка-завершення (без питання). */
+function milestoneBody(ex) {
+  const st = store.exercise(ex.id);
+  const screen = Math.min(st.screen || 0, ex.screens.length);
+  if (screen < ex.screens.length) {
+    return `<div class="card-screen"><p>${md(ex.screens[screen])}</p></div>
+      <div class="dots">${ex.screens.map((_, i) => `<span class="${i === screen ? 'on' : ''}"></span>`).join('')}<span class="${screen === ex.screens.length ? 'on' : ''}">★</span></div>
+      <div class="actions">${screen > 0 ? '<button class="btn" data-act="screen-prev">Назад</button>' : ''}<button class="btn primary" data-act="screen-next" data-testid="screen-next">Далі</button></div>`;
+  }
+  return `<div class="badge" data-testid="badge"><div class="badge-ico" aria-hidden="true">★</div><p class="badge-title">${esc(ex.badge.title)}</p>${ex.badge.text ? `<p class="badge-text">${esc(ex.badge.text)}</p>` : ''}</div>
+    <div class="actions"><button class="btn" data-act="screen-prev">Назад</button>
+    ${st.status !== 'passed' ? `<button class="btn primary" data-act="complete" data-testid="complete">${esc(ex.cta)}</button>` : ''}</div>`;
+}
+
 function miniTable(t) {
   return `<div class="tbl-wrap"><table class="res"><thead><tr>${t.columns.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead>
     <tbody>${t.rows.map((r) => `<tr>${r.map((v) => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -194,7 +210,8 @@ function choiceBody(ex) {
     <div class="actions">${st.status !== 'passed' ? `<button class="btn primary" data-act="check-choice" ${st.choice == null ? 'disabled' : ''} data-testid="check">Перевірити</button>` : ''}</div>`;
 }
 
-const KEYWORDS = ['SELECT', '*', ',', 'FROM', 'WHERE', 'AND', 'OR', "' '", '=', '>', '<', 'LIMIT', '( )', ';'];
+const KEYWORDS = ['SELECT', '*', ',', 'FROM', 'WHERE', 'AND', 'OR', "' '", '=', '>', '<', 'LIMIT', '( )', ';',
+  'IN', 'BETWEEN', 'ILIKE', 'IS NULL', 'ORDER BY', 'DESC', 'AS', 'COUNT(*)', 'SUM', 'AVG', 'GROUP BY', 'HAVING'];
 
 function sqlBody(ex) {
   const st = store.exercise(ex.id);
@@ -273,14 +290,16 @@ function hintsHtml(ex) {
   const texts = state.hintTexts[ex.id] || {};
   const shownList = [];
   for (let l = 1; l <= (st.hintsShown || 0); l++) {
-    const t = l <= 2 ? (ex.hints || [])[l - 1] : (texts[3] || '…');
-    shownList.push(`<li class="hint lvl${l}"><b>Підказка ${l}${l === 3 ? ' (ШІ-наставник)' : ''}:</b> ${md(t)}</li>`);
+    const author3 = l === 3 && level3Source(ex) === 'author';
+    const t = l <= 2 || author3 ? (ex.hints || [])[l - 1] : (texts[3] || '…');
+    shownList.push(`<li class="hint lvl${l}"><b>Підказка ${l}${l === 3 ? (author3 ? ' (приклад)' : ' (ШІ-наставник)') : ''}:</b> ${md(t)}</li>`);
   }
   const nextLvl = av.find((h) => !h.shown);
   let btn = '';
   if (nextLvl) {
-    if (nextLvl.unlocked) btn = `<button class="btn link" data-act="hint" data-l="${nextLvl.level}" data-testid="hint">Підказка ${nextLvl.level}${nextLvl.level === 3 ? ' від ШІ' : ''}</button>`;
-    else if (nextLvl.level === 3) btn = `<p class="muted">Підказка 3 (ШІ) відкриється після ${nextLvl.needAttempts} ${plural(nextLvl.needAttempts, 'спроби', 'спроб', 'спроб')} перевірки.</p>`;
+    const l3 = level3Source(ex) === 'author' ? ': приклад' : ' від ШІ';
+    if (nextLvl.unlocked) btn = `<button class="btn link" data-act="hint" data-l="${nextLvl.level}" data-testid="hint">Підказка ${nextLvl.level}${nextLvl.level === 3 ? l3 : ''}</button>`;
+    else if (nextLvl.level === 3) btn = `<p class="muted">Підказка 3${level3Source(ex) === 'author' ? ' (приклад)' : ' (ШІ)'} відкриється після ${nextLvl.needAttempts} ${plural(nextLvl.needAttempts, 'спроби', 'спроб', 'спроб')} перевірки.</p>`;
   }
   return `<section class="hints"><ol>${shownList.join('')}</ol>${btn}</section>`;
 }
@@ -318,6 +337,9 @@ async function onClick(e) {
       store.updateExercise(ex.id, { revealed: true, attempts: (st.attempts || 0) + 1, status: ok ? 'passed' : 'needs_retry', ...(ok ? { passedAt: new Date().toISOString() } : {}) });
       rerender(); break;
     }
+    case 'complete': // підсумкова картка (milestone): зараховується натисканням кнопки
+      if (ex.type === 'milestone' && st.status !== 'passed') { store.updateExercise(ex.id, { attempts: (st.attempts || 0) + 1, status: 'passed', passedAt: new Date().toISOString() }); rerender(); }
+      break;
     case 'kw': insertKeyword(b.dataset.k); break;
     case 'run': await runSql(ex, b.dataset.sql === 'parsons' ? (st.parsons || []).join(' ') : editorCode(ex)); break;
     case 'run-sandbox': await runSql(ex, ex.sandbox); break;

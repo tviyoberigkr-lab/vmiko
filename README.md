@@ -1,7 +1,7 @@
 # Vmiko — навчання дата-аналітики через практику
 
 Україномовний застосунок (PWA): SQL-вправи по 3–7 хвилин просто в браузері, з перевіркою на прихованих даних.
-Зараз це прототип: модуль М1, дні 1–2 (21 вправа), датасет D1 «Кошик».
+Зараз це прототип: безкоштовний модуль М1 повністю — 12 днів (123 вправи), датасет D1 «Кошик».
 
 - Специфікація треку: `docs/track_data_analyst.md`
 - Схема бази «Кошик»: `docs/schema_koshyk.md`
@@ -45,7 +45,7 @@
 npm install                      # один раз: ставить PGlite для тестів
 node tools/test_gen.js           # генератор датасету: обсяги, закладені інсайти, частка дублікатів
 node tools/test_checker.js       # порівняння результатів SQL (модульні + на справжньому Postgres)
-node tools/test_content.js       # уроки: еталони на обох наборах, стартовий код, блоки Parsons
+node tools/test_content.js       # уроки: еталони на обох наборах, стартовий код, Parsons, підказки, index.json, content_cases.json
 python3 tools/smoke_browser.py   # застосунок у headless Chrome (потрібен pip install playwright і Chrome)
 ```
 
@@ -78,12 +78,15 @@ docs/                     специфікація, схема, рішення, 
 
 | Поле | Для типів | Значення |
 |---|---|---|
-| `id`, `type`, `title`, `minutes` (1–7), `device` (`any`/`prefer_desktop`) | усі | `type`: `card`, `choice`, `sql`, `parsons` |
+| `id`, `type`, `title`, `minutes` (1–7), `device` (`any`/`prefer_desktop`), `project?` | усі | `type`: `card`, `choice`, `sql`, `parsons`, `milestone`; `project` — мітка чекпоінта проєкту над заголовком |
 | `screens` + `question{prompt, options}` | card | 1–5 екранів і контрольне питання |
 | `prompt`, `options[{text, correct, explain}]`, `sandbox?`, `table?` | choice | пояснення має кожен варіант; `sandbox` — запит, який можна запустити; `table` — маленька таблиця для «передбач результат» |
-| `prompt`, `starter`, `reference`, `check?`, `hints[2]`, `success?`, `starterPasses?` | sql | `reference` — еталонний запит |
-| `blocks` (правильний порядок), `distractors`, `reference`, `check?`, `hints` | parsons | блоки показуються перемішаними |
+| `prompt`, `starter`, `reference`, `check?`, `hints[3]`, `success?`, `starterPasses?` | sql | `reference` — еталонний запит; підказки: напрям → конкретне місце → приклад на іншій таблиці (без готового запиту) |
+| `blocks` (правильний порядок), `distractors`, `reference`, `check?`, `hints[3]` | parsons | блоки показуються перемішаними |
+| `screens`, `badge{title, text?}`, `cta` | milestone | підсумок модуля: екрани, бейдж і кнопка-завершення без питання (день 12, «що далі в М2») |
 | `check.mode: "subset"`, `rowCount`, `referenceFull` | sql/parsons | для `LIMIT` без `ORDER BY` |
 | `check.ordered`, `check.orderKey`, `check.tolerance`, `check.checkColumnNames` | sql/parsons | тонке налаштування перевірки, див. `docs/decisions.md` (Р4) |
+
+Новий день: файл `app/content/m1/dayN.json` → рядок у `app/content/index.json` → шлях у `SHELL` в `app/sw.js` (і підняти `SHELL_VERSION`) → інші правильні записи й типові помилки в `tools/content_cases.json` → `node tools/test_content.js`.
 
 *CoLaba Production*

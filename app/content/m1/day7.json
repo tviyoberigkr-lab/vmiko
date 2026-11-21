@@ -1,0 +1,202 @@
+{
+  "id": "m1-d7",
+  "module": "М1",
+  "day": 7,
+  "title": "Агрегати: COUNT, SUM, AVG, MIN, MAX",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d7-01",
+      "type": "card",
+      "title": "Одна відповідь з тисяч рядків",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "Тиждень 2 — рахуємо. Олена питає не «покажи замовлення», а «**скільки** замовлень?», «**яка** виручка?». Відповідь — одне число.",
+        "Агрегатні функції збирають багато рядків в одне значення:\n`COUNT(*)` — кількість рядків, `SUM(x)` — сума, `AVG(x)` — середнє, `MIN(x)` / `MAX(x)` — найменше / найбільше.",
+        "`SELECT COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered'`\nСпершу `WHERE` відбирає рядки, потім агрегат рахує по них. Результат — **один рядок**."
+      ],
+      "question": {
+        "prompt": "Скільки рядків поверне `SELECT AVG(price_uah) FROM products`?",
+        "options": [
+          { "text": "1", "correct": true, "explain": "Так: середнє по всіх товарах — одне число." },
+          { "text": "Стільки, скільки товарів", "correct": false, "explain": "Так було б без агрегату. AVG згортає всі рядки в один." },
+          { "text": "15 — по одному на категорію", "correct": false, "explain": "По категоріях — це GROUP BY, завтра. Без нього агрегат рахує по всій таблиці." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d7-02",
+      "type": "sql",
+      "title": "Скільки всього замовлень?",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Перше питання Олени: **скільки всього замовлень** у базі? Напиши запит, який поверне одне число.",
+      "starter": "SELECT \nFROM orders",
+      "reference": "SELECT COUNT(*) FROM orders",
+      "hints": [
+        "Порахувати рядки таблиці — це агрегатна функція COUNT.",
+        "Після SELECT напиши COUNT(*) — зірочка означає «усі рядки».",
+        "Приклад на іншій таблиці: SELECT MAX(price_uah) FROM products — та сама будова: функція після SELECT, таблиця після FROM."
+      ],
+      "success": "69 610 замовлень за 2024–2026 роки. Але Олену цікавить не все підряд, а гроші — далі про виручку."
+    },
+    {
+      "id": "m1-d7-03",
+      "type": "card",
+      "title": "Що таке виручка в «Кошику»",
+      "minutes": 2,
+      "device": "any",
+      "screens": [
+        "Перш ніж рахувати гроші, домовся про визначення. Скасоване замовлення грошей не принесло, повернене — гроші пішли назад, «в дорозі» — ще не завершене.",
+        "Тому в «Кошику» **виручка = сума `total_uah` замовлень зі статусом `delivered`**. Так рахуємо до кінця модуля. **Середній чек** — середня сума доставленого замовлення."
+      ],
+      "question": {
+        "prompt": "Чому скасовані замовлення не входять у виручку?",
+        "options": [
+          { "text": "Бо за них магазин не отримав грошей", "correct": true, "explain": "Так. Якщо їх додати, виручка вийде завищеною — і Олена прийме рішення за неправильним числом." },
+          { "text": "Бо в них немає суми", "correct": false, "explain": "Сума є: total_uah заповнений у всіх замовлень. Справа в тому, що гроші не надійшли." },
+          { "text": "Бо їх мало, вони не впливають", "correct": false, "explain": "Скасованих — тисячі. Але головне інше: це не гроші магазину." }
+        ]
+      }
+    },
+    {
+      "id": "m1-d7-04",
+      "type": "sql",
+      "title": "Виручка за 2025 рік",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Яка **виручка за 2025 рік**? Порахуй суму `total_uah` доставлених (`delivered`) замовлень з датою від 1 січня до 31 грудня 2025.",
+      "starter": "SELECT \nFROM orders\nWHERE ",
+      "reference": "SELECT SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'",
+      "hints": [
+        "Сума — функція SUM; рядки відбирає WHERE: статус і рік.",
+        "SELECT SUM(total_uah) … WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'.",
+        "Приклад на іншій таблиці: SELECT SUM(price_uah) FROM products WHERE category = 'Фени' — вартість усіх фенів у каталозі по одному."
+      ],
+      "success": "154 179 859,80 грн — понад 154 млн гривень. Це число стане першим рядком звіту для Олени."
+    },
+    {
+      "id": "m1-d7-05",
+      "type": "sql",
+      "title": "Середній чек",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Який **середній чек** — середня сума **доставленого** замовлення за весь час? Можна округлити до копійок через `ROUND(…, 2)`, можна без округлення.",
+      "starter": "",
+      "reference": "SELECT AVG(total_uah) FROM orders WHERE status = 'delivered'",
+      "hints": [
+        "Середнє — функція AVG, і лише доставлені замовлення.",
+        "SELECT AVG(total_uah) FROM orders WHERE status = …",
+        "Приклад на іншій таблиці: SELECT ROUND(AVG(price_uah), 2) FROM products WHERE brand = 'Xiaomi' — середня ціна товарів Xiaomi."
+      ],
+      "success": "≈6 312 грн. Середній чек — одна з головних метрик магазину: її порівнюють між каналами, містами, місяцями."
+    },
+    {
+      "id": "m1-d7-06",
+      "type": "sql",
+      "title": "Найдешевший і найдорожчий товар",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "У якому діапазоні цін працює «Кошик»? Виведи **найменшу і найбільшу** `price_uah` у `products` — два числа в одному рядку.",
+      "starter": "",
+      "reference": "SELECT MIN(price_uah), MAX(price_uah) FROM products",
+      "hints": [
+        "Найменше — MIN, найбільше — MAX. Можна кілька агрегатів через кому.",
+        "SELECT MIN(price_uah), MAX(…) FROM products",
+        "Приклад на іншій таблиці: SELECT MIN(order_date), MAX(order_date) FROM orders — перше й останнє замовлення."
+      ],
+      "success": "Від 89 до 17 749 грн: кабель і кавоварка в одному магазині."
+    },
+    {
+      "id": "m1-d7-07",
+      "type": "choice",
+      "title": "Передбач: COUNT(*) і COUNT(колонки)",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Що поверне запит?\n`SELECT COUNT(*), COUNT(delivery_date) FROM t`",
+      "table": {
+        "columns": ["order_id", "status", "delivery_date"],
+        "rows": [[1, "delivered", "2025-03-04"], [2, "cancelled", "NULL"], [3, "delivered", "2025-03-06"], [4, "in_transit", "NULL"], [5, "returned", "2025-03-07"]]
+      },
+      "options": [
+        { "text": "5 і 3", "correct": true, "explain": "Так. COUNT(*) рахує всі рядки, а COUNT(колонка) — лише ті, де значення не NULL." },
+        { "text": "5 і 5", "correct": false, "explain": "COUNT(колонка) пропускає NULL. У двох рядках дати немає." },
+        { "text": "3 і 3", "correct": false, "explain": "COUNT(*) рахує рядки цілком, NULL у колонках йому не заважає." },
+        { "text": "5 і 2", "correct": false, "explain": "2 — це кількість NULL. А COUNT(delivery_date) рахує заповнені значення." }
+      ]
+    },
+    {
+      "id": "m1-d7-08",
+      "type": "sql",
+      "title": "Перевір на всій базі",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Перевір на справжніх даних: виведи в одному рядку **кількість усіх замовлень** і **кількість замовлень із заповненою датою доставки**.",
+      "starter": "SELECT \nFROM orders",
+      "reference": "SELECT COUNT(*), COUNT(delivery_date) FROM orders",
+      "hints": [
+        "Два агрегати через кому: один рахує всі рядки, другий — заповнені значення однієї колонки.",
+        "COUNT(*) і COUNT(delivery_date).",
+        "Приклад на іншій таблиці: SELECT COUNT(*), COUNT(promo_code_id) FROM orders — скільки всього замовлень і скільки з промокодом."
+      ],
+      "success": "69 610 проти 64 479. Різниця 5 131 — це скасовані й ті, що в дорозі: ти бачив їх у день 3. Хто рахує «кількість замовлень» через COUNT(delivery_date), той непомітно їх губить."
+    },
+    {
+      "id": "m1-d7-09",
+      "type": "sql",
+      "title": "Скільки клієнтів хоч раз купували",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "У базі 20 000 клієнтів. А **скільки різних клієнтів** зробили хоча б одне замовлення? `COUNT(DISTINCT колонка)` рахує **різні** значення — використай його по `customer_id` у таблиці `orders`.",
+      "starter": "SELECT \nFROM orders",
+      "reference": "SELECT COUNT(DISTINCT customer_id) FROM orders",
+      "hints": [
+        "Один клієнт може мати багато замовлень — треба рахувати кожного лише раз.",
+        "COUNT(DISTINCT customer_id) — DISTINCT усередині дужок.",
+        "Приклад на іншій таблиці: SELECT COUNT(DISTINCT brand) FROM products — скільки різних брендів у каталозі."
+      ],
+      "success": "15 415 з 20 000. Майже кожен четвертий зареєстрований клієнт не купив жодного разу — цих «сиріт» ми шукатимемо в М2."
+    },
+    {
+      "id": "m1-d7-10",
+      "type": "parsons",
+      "title": "Збери запит: суми скасованих замовлень",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Збери запит: **середня, мінімальна і максимальна** сума **скасованих** замовлень — в одному рядку. Є зайві блоки.",
+      "blocks": [
+        "SELECT AVG(total_uah),",
+        "MIN(total_uah), MAX(total_uah)",
+        "FROM orders",
+        "WHERE status = 'cancelled'"
+      ],
+      "distractors": [
+        "MIN(total_uah) MAX(total_uah)",
+        "WHERE status = cancelled",
+        "WHERE COUNT(*) > 0"
+      ],
+      "reference": "SELECT AVG(total_uah), MIN(total_uah), MAX(total_uah) FROM orders WHERE status = 'cancelled'",
+      "hints": [
+        "Три агрегати через кому, потім таблиця, потім фільтр.",
+        "Між агрегатами — коми. Статус — текст у лапках. Агрегати в WHERE не пишуть.",
+        "Схожий запит на іншій таблиці: SELECT AVG(price_uah), MIN(price_uah), MAX(price_uah) FROM products WHERE category = 'Праски'"
+      ]
+    },
+    {
+      "id": "m1-d7-11",
+      "type": "choice",
+      "title": "Повтор: CASE",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Яка умова в CASE спрацює, якщо правдиві кілька?",
+      "options": [
+        { "text": "Перша правдива згори", "correct": true, "explain": "Так. Тому вузькі умови пишуть першими, широкі — нижче." },
+        { "text": "Остання правдива", "correct": false, "explain": "Навпаки: CASE зупиняється на першій правдивій." },
+        { "text": "Усі разом — значення склеються", "correct": false, "explain": "CASE завжди дає одне значення для рядка." }
+      ]
+    }
+  ]
+}

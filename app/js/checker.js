@@ -254,6 +254,7 @@ export function explainPgError(msg) {
   if ((r = /relation "([^"]+)" does not exist/i.exec(m))) return `Таблиці «${r[1]}» немає. Перевір назву таблиці.`;
   if ((r = /syntax error at or near "([^"]*)"/i.exec(m))) return `Синтаксична помилка біля «${r[1]}». Перевір коми, лапки і порядок ключових слів.`;
   if (/syntax error at end of input/i.test(m)) return 'Запит обірвався: чогось бракує в кінці (колонки, таблиці чи умови).';
+  if (/aggregate functions are not allowed in WHERE/i.test(m)) return 'Агрегатні функції (COUNT, SUM, AVG…) не можна писати у WHERE: він працює до групування. Умову на агрегат перенеси в HAVING після GROUP BY.';
   if (/must appear in the GROUP BY clause/i.test(m)) return 'Колонка в SELECT має бути або в GROUP BY, або всередині агрегатної функції (SUM, COUNT…).';
   if (/cannot insert multiple commands/i.test(m)) return 'Тут виконується лише один запит за раз. Прибери зайві запити (після «;»).';
   if (/read-only transaction/i.test(m)) return 'У навчальній базі можна лише читати дані (SELECT). Змінювати таблиці не можна.';

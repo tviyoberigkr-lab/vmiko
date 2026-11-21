@@ -22,9 +22,21 @@
       "question": {
         "prompt": "Де стоїть WHERE у запиті?",
         "options": [
-          { "text": "Після FROM таблиця", "correct": true, "explain": "Так: SELECT … FROM … WHERE … LIMIT …" },
-          { "text": "Одразу після SELECT", "correct": false, "explain": "Після SELECT ідуть колонки. Фільтр — після FROM." },
-          { "text": "У самому кінці, після LIMIT", "correct": false, "explain": "LIMIT завжди останній. WHERE — перед ним." }
+          {
+            "text": "Після FROM таблиця",
+            "correct": true,
+            "explain": "Так: SELECT … FROM … WHERE … LIMIT …"
+          },
+          {
+            "text": "Одразу після SELECT",
+            "correct": false,
+            "explain": "Після SELECT ідуть колонки. Фільтр — після FROM."
+          },
+          {
+            "text": "У самому кінці, після LIMIT",
+            "correct": false,
+            "explain": "LIMIT завжди останній. WHERE — перед ним."
+          }
         ]
       }
     },
@@ -39,7 +51,8 @@
       "reference": "SELECT * FROM customers WHERE city = 'Львів'",
       "hints": [
         "Умова: колонка city дорівнює тексту Львів. Текст — в одинарних лапках.",
-        "WHERE city = '…'"
+        "WHERE city = '…'",
+        "Приклад на іншій таблиці: SELECT * FROM products WHERE brand = 'Bosch'"
       ],
       "success": "Скільки рядків? Це і є відповідь Олені: стільки клієнтів у Львові."
     },
@@ -54,7 +67,8 @@
       "reference": "SELECT * FROM customers WHERE city = 'Львів'",
       "hints": [
         "База пише «column … does not exist»: слово без лапок вона вважає назвою колонки.",
-        "Візьми Львів в одинарні лапки: 'Львів'."
+        "Візьми Львів в одинарні лапки: 'Львів'.",
+        "Приклад на іншій таблиці: SELECT * FROM orders WHERE delivery_method = 'Самовивіз' — текст у лапках."
       ],
       "success": "Правило: текст — в одинарних лапках, назви колонок — без лапок."
     },
@@ -69,7 +83,8 @@
       "reference": "SELECT order_id, order_date, total_uah FROM orders WHERE total_uah > 5000 AND status = 'delivered'",
       "hints": [
         "Дві умови мають виконуватися одночасно — з'єднай їх словом AND.",
-        "total_uah > 5000 AND status = '…'. Число без лапок, статус — у лапках."
+        "total_uah > 5000 AND status = '…'. Число без лапок, статус — у лапках.",
+        "Приклад на іншій таблиці: SELECT product_name, price_uah FROM products WHERE price_uah > 3000 AND brand = 'Philips'"
       ],
       "success": "«Понад 5000» — це строго більше: > 5000. Якби було «від 5000» — тоді >= 5000."
     },
@@ -82,10 +97,26 @@
       "prompt": "Запит `SELECT * FROM customers WHERE city = 'львів'` виконався без помилки, але повернув 0 рядків. Чому?",
       "sandbox": "SELECT * FROM customers WHERE city = 'львів'",
       "options": [
-        { "text": "Порівняння тексту враховує регістр: у даних «Львів» з великої літери", "correct": true, "explain": "Так. 'львів' і 'Львів' — різні рядки для бази. Пишемо точно як у даних (або є ILIKE — це день 3)." },
-        { "text": "У Львові немає клієнтів", "correct": false, "explain": "Є — ти їх щойно знаходив. Порівняй, як записане місто в даних і в запиті." },
-        { "text": "Потрібні подвійні лапки", "correct": false, "explain": "Подвійні лапки в Postgres — для назв колонок і таблиць. Текст — в одинарних." },
-        { "text": "Бракує LIMIT", "correct": false, "explain": "LIMIT лише обмежує кількість рядків, а тут їх 0." }
+        {
+          "text": "Порівняння тексту враховує регістр: у даних «Львів» з великої літери",
+          "correct": true,
+          "explain": "Так. 'львів' і 'Львів' — різні рядки для бази. Пишемо точно як у даних (або є ILIKE — це день 3)."
+        },
+        {
+          "text": "У Львові немає клієнтів",
+          "correct": false,
+          "explain": "Є — ти їх щойно знаходив. Порівняй, як записане місто в даних і в запиті."
+        },
+        {
+          "text": "Потрібні подвійні лапки",
+          "correct": false,
+          "explain": "Подвійні лапки в Postgres — для назв колонок і таблиць. Текст — в одинарних."
+        },
+        {
+          "text": "Бракує LIMIT",
+          "correct": false,
+          "explain": "LIMIT лише обмежує кількість рядків, а тут їх 0."
+        }
       ]
     },
     {
@@ -102,9 +133,21 @@
       "question": {
         "prompt": "Як база прочитає `WHERE x OR y AND z`?",
         "options": [
-          { "text": "x OR (y AND z)", "correct": true, "explain": "Так. AND «сильніший», тому спершу y AND z." },
-          { "text": "(x OR y) AND z", "correct": false, "explain": "Так було б, якби OR виконувався першим. Але першим іде AND." },
-          { "text": "Видасть помилку", "correct": false, "explain": "Помилки не буде — і це небезпечно: запит виконається, але не так, як ти думав." }
+          {
+            "text": "x OR (y AND z)",
+            "correct": true,
+            "explain": "Так. AND «сильніший», тому спершу y AND z."
+          },
+          {
+            "text": "(x OR y) AND z",
+            "correct": false,
+            "explain": "Так було б, якби OR виконувався першим. Але першим іде AND."
+          },
+          {
+            "text": "Видасть помилку",
+            "correct": false,
+            "explain": "Помилки не буде — і це небезпечно: запит виконається, але не так, як ти думав."
+          }
         ]
       }
     },
@@ -116,14 +159,60 @@
       "device": "any",
       "prompt": "Дано маленьку таблицю. Скільки рядків поверне запит:\n`SELECT * FROM t WHERE status = 'delivered' OR status = 'cancelled' AND total_uah > 5000`",
       "table": {
-        "columns": ["order_id", "status", "total_uah"],
-        "rows": [[1, "delivered", 6000], [2, "cancelled", 7000], [3, "delivered", 2000], [4, "cancelled", 1500], [5, "delivered", 8000]]
+        "columns": [
+          "order_id",
+          "status",
+          "total_uah"
+        ],
+        "rows": [
+          [
+            1,
+            "delivered",
+            6000
+          ],
+          [
+            2,
+            "cancelled",
+            7000
+          ],
+          [
+            3,
+            "delivered",
+            2000
+          ],
+          [
+            4,
+            "cancelled",
+            1500
+          ],
+          [
+            5,
+            "delivered",
+            8000
+          ]
+        ]
       },
       "options": [
-        { "text": "2", "correct": false, "explain": "Ні. Спершу AND: «cancelled і > 5000» — це рядок 2. Потім OR додає всі delivered." },
-        { "text": "3", "correct": false, "explain": "3 було б з дужками (delivered OR cancelled) AND > 5000. Без дужок AND виконується першим." },
-        { "text": "4", "correct": true, "explain": "Так: delivered (1, 3, 5) OR (cancelled AND > 5000 → 2) = 4 рядки. Рядок 3 на 2000 грн потрапив — навряд чи автор цього хотів." },
-        { "text": "5", "correct": false, "explain": "Рядок 4 (cancelled, 1500) не проходить жодну частину умови." }
+        {
+          "text": "2",
+          "correct": false,
+          "explain": "Ні. Спершу AND: «cancelled і > 5000» — це рядок 2. Потім OR додає всі delivered."
+        },
+        {
+          "text": "3",
+          "correct": false,
+          "explain": "3 було б з дужками (delivered OR cancelled) AND > 5000. Без дужок AND виконується першим."
+        },
+        {
+          "text": "4",
+          "correct": true,
+          "explain": "Так: delivered (1, 3, 5) OR (cancelled AND > 5000 → 2) = 4 рядки. Рядок 3 на 2000 грн потрапив — навряд чи автор цього хотів."
+        },
+        {
+          "text": "5",
+          "correct": false,
+          "explain": "Рядок 4 (cancelled, 1500) не проходить жодну частину умови."
+        }
       ]
     },
     {
@@ -137,7 +226,8 @@
       "reference": "SELECT order_id, delivery_method, total_uah FROM orders WHERE (delivery_method = 'Укрпошта' OR delivery_method = 'Самовивіз') AND total_uah > 3000",
       "hints": [
         "Тут змішані OR і AND — без дужок умова суми спрацює лише для одного способу доставки.",
-        "(delivery_method = 'Укрпошта' OR delivery_method = '…') AND total_uah > 3000"
+        "(delivery_method = 'Укрпошта' OR delivery_method = '…') AND total_uah > 3000",
+        "Приклад на іншій таблиці: SELECT * FROM customers WHERE (city = 'Одеса' OR city = 'Дніпро') AND acquisition_channel = 'telegram'"
       ],
       "success": "Дужки врятували результат. Без них у список потрапили б усі замовлення Укрпоштою, навіть на 100 грн."
     },
@@ -148,12 +238,22 @@
       "minutes": 3,
       "device": "any",
       "prompt": "Збери запит: **назва і ціна** товарів категорії **«Навушники»** дешевше **1000 грн**. Є зайві блоки.",
-      "blocks": ["SELECT product_name, price_uah", "FROM products", "WHERE category = 'Навушники'", "AND price_uah < 1000"],
-      "distractors": ["WHERE category = Навушники", "OR price_uah < 1000", "AND price_uah < '1000 грн'"],
+      "blocks": [
+        "SELECT product_name, price_uah",
+        "FROM products",
+        "WHERE category = 'Навушники'",
+        "AND price_uah < 1000"
+      ],
+      "distractors": [
+        "WHERE category = Навушники",
+        "OR price_uah < 1000",
+        "AND price_uah < '1000 грн'"
+      ],
       "reference": "SELECT product_name, price_uah FROM products WHERE category = 'Навушники' AND price_uah < 1000",
       "hints": [
         "Обидві умови мають виконуватися разом — AND, не OR.",
-        "Категорія — текст у лапках; ціна — число без лапок і без «грн»."
+        "Категорія — текст у лапках; ціна — число без лапок і без «грн».",
+        "Схожий запит на іншій таблиці: SELECT full_name, city FROM customers WHERE city = 'Одеса' AND acquisition_channel = 'email'"
       ]
     },
     {
@@ -167,7 +267,8 @@
       "reference": "SELECT * FROM customers WHERE acquisition_channel = 'telegram' AND registered_at >= '2026-01-01'",
       "hints": [
         "Канал — колонка acquisition_channel. Дата — registered_at, записується в лапках у форматі 'РРРР-ММ-ДД'.",
-        "acquisition_channel = 'telegram' AND registered_at >= '2026-01-01'"
+        "acquisition_channel = 'telegram' AND registered_at >= '2026-01-01'",
+        "Приклад на іншій таблиці: SELECT * FROM orders WHERE status = 'cancelled' AND order_date >= '2026-06-01'"
       ],
       "success": "Дати порівнюються як числа: >= '2026-01-01' — «з 1 січня 2026 і пізніше»."
     },
@@ -179,10 +280,26 @@
       "device": "any",
       "prompt": "Який запит правильний?",
       "options": [
-        { "text": "SELECT * FROM orders WHERE status = 'cancelled' AND total_uah > 3000", "correct": true, "explain": "Так: текст у лапках, число без." },
-        { "text": "SELECT * FROM orders WHERE status = cancelled AND total_uah > 3000", "correct": false, "explain": "cancelled без лапок база сприйме як назву колонки → помилка." },
-        { "text": "SELECT * FROM orders WHERE 'status' = 'cancelled' AND total_uah > 3000", "correct": false, "explain": "'status' у лапках — це текст «status», а не колонка. Умова завжди хибна → 0 рядків." },
-        { "text": "SELECT * FROM orders WHERE status = 'cancelled' AND total_uah > '3000 грн'", "correct": false, "explain": "Число з «грн» — це вже текст; база видасть помилку типу." }
+        {
+          "text": "SELECT * FROM orders WHERE status = 'cancelled' AND total_uah > 3000",
+          "correct": true,
+          "explain": "Так: текст у лапках, число без."
+        },
+        {
+          "text": "SELECT * FROM orders WHERE status = cancelled AND total_uah > 3000",
+          "correct": false,
+          "explain": "cancelled без лапок база сприйме як назву колонки → помилка."
+        },
+        {
+          "text": "SELECT * FROM orders WHERE 'status' = 'cancelled' AND total_uah > 3000",
+          "correct": false,
+          "explain": "'status' у лапках — це текст «status», а не колонка. Умова завжди хибна → 0 рядків."
+        },
+        {
+          "text": "SELECT * FROM orders WHERE status = 'cancelled' AND total_uah > '3000 грн'",
+          "correct": false,
+          "explain": "Число з «грн» — це вже текст; база видасть помилку типу."
+        }
       ]
     }
   ]
