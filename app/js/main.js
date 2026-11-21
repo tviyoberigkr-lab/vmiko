@@ -3,6 +3,7 @@
  * Без фреймворків: стан у store (storage.js), рендер — шаблонні рядки, події — делегування.
  * CoLaba Production
  */
+import { editorHtml, syncEditor, handleRunShortcut } from './editor.js';
 import { LocalStorageAdapter, MemoryAdapter, createProgressStore } from './storage.js';
 import { createDb } from './db.js';
 import { hintAvailability, getHint } from './mentor.js';
@@ -147,7 +148,7 @@ function renderExercise(id) {
     </main>`;
   if (ex.type === 'sql') {
     const ta = $app.querySelector('textarea.sql');
-    if (ta && document.activeElement !== ta && !passed) { /* не фокусуємо автоматично на телефоні — клавіатура закриває екран */ }
+    syncEditor(ta); // не фокусуємо автоматично на телефоні — клавіатура закриває екран
   }
 }
 
@@ -200,7 +201,7 @@ function sqlBody(ex) {
   const code = st.code != null ? st.code : (ex.starter || '');
   const ready = state.dbStatus === 'ready';
   return `<p class="prompt">${md(ex.prompt)}</p>
-    <textarea class="sql" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-testid="editor" aria-label="SQL-редактор">${esc(code)}</textarea>
+    ${editorHtml(code, 'spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-testid="editor" aria-label="SQL-редактор"', esc)}
     <div class="kbar" aria-label="Ключові слова">${KEYWORDS.map((k) => `<button class="k" data-act="kw" data-k="${esc(k)}">${esc(k)}</button>`).join('')}</div>
     <div class="actions">
       <button class="btn" data-act="run" ${ready && !state.busy ? '' : 'disabled'} data-testid="run">▶ Запустити</button>
@@ -393,6 +394,7 @@ async function checkSql(ex, sql) {
 function onInput(e) {
   const ta = e.target.closest('textarea.sql');
   if (!ta) return;
+  syncEditor(ta);
   const ex = currentEx();
   if (!ex) return;
   const st = store.exercise(ex.id);
@@ -437,13 +439,20 @@ async function boot() {
       if (s === 'ready') { state.dbInfo = info; window.__vmikoDbInfo = info; }
       if (s === 'error') state.dbError = info;
       if (!$app.querySelector('textarea.sql:focus')) rerender();
-      else { const el = $app.querySelector('.db-status'); if (el) el.textContent = dbStatusText(); }
+      else {
+        // курсор у редакторі — не перемальовуємо, лише оновлюємо статус і кнопки
+        const el = $app.querySelector('.db-status'); if (el) el.textContent = dbStatusText();
+        const ready = s === 'ready' && !state.busy;
+        $app.querySelectorAll('button[data-act="run"], button[data-act="check-sql"]').forEach((b) => { b.disabled = !ready; });
+      }
     },
   });
   db.init().catch((e) => console.error('DB init failed', e));
 
   $app.addEventListener('click', onClick);
   $app.addEventListener('input', onInput);
+  $app.addEventListener('keydown', (e) => handleRunShortcut(e, $app));
+  window.addEventListener('resize', () => syncEditor($app.querySelector('textarea.sql')));
   window.addEventListener('hashchange', route);
   route();
   window.__vmiko = { store, db, state }; // для автотестів і налагодження

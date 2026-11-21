@@ -62,8 +62,16 @@ h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
 .explain { margin: -2px 4px 6px; font-size: .92rem; }
 .explain.right { color: var(--ok); } .explain.wrong { color: var(--bad); }
 
-textarea.sql { width: 100%; min-height: 140px; font: 15px/1.45 var(--mono); padding: 12px; border: 2px solid var(--line); border-radius: 10px; background: #fffdf8; color: var(--ink); resize: vertical; }
+.sqled { position: relative; background: #fffdf8; border-radius: 10px; }
+.sqled-hl, textarea.sql { margin: 0; width: 100%; border: 2px solid var(--line); border-radius: 10px; padding: 12px; font: 16px/1.45 var(--mono); letter-spacing: 0; tab-size: 2; white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; box-sizing: border-box; }
+.sqled-hl { position: absolute; inset: 0; border-color: transparent; color: var(--ink); overflow: hidden; pointer-events: none; }
+textarea.sql { position: relative; display: block; min-height: 140px; background: transparent; color: transparent; -webkit-text-fill-color: transparent; caret-color: var(--ink); resize: none; overflow: hidden; -webkit-appearance: none; appearance: none; }
+textarea.sql::selection { background: rgba(31, 95, 74, .25); -webkit-text-fill-color: transparent; }
 textarea.sql:focus { outline: none; border-color: var(--brand); }
+.t-k { color: var(--brand); }
+.t-s { color: #8a5a00; }
+.t-n { color: #5866b3; }
+.t-c { color: var(--muted); font-style: italic; }
 .kbar { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .kbar .k { flex: 0 0 auto; font: 600 13px var(--mono); border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 8px 10px; min-height: 38px; cursor: pointer; color: var(--ink); }
 pre.sql-ro { font: 14px/1.4 var(--mono); background: #efece3; padding: 10px 12px; border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0; }
