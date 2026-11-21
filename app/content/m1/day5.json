@@ -86,7 +86,7 @@
       "reference": "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah)::numeric / price_uah AS margin_share FROM products",
       "hints": [
         "price_uah і cost_uah — цілі числа. Згадай, що дає 7 / 2.",
-        "Перетвори чисельник на дробове число: (price_uah - cost_uah)::numeric / price_uah.",
+        "Причина — цілочисельне ділення: різницю ціни та собівартості треба привести до numeric перед тим, як ділити на ціну.",
         "Приклад без цієї таблиці: SELECT 899 / 1000 дає 0, а SELECT 899::numeric / 1000 дає 0.899."
       ],
       "success": "Це класична помилка навіть досвідчених аналітиків: звіт із нулями, які ніхто не перевірив. Тепер ти її бачиш одразу."
@@ -122,7 +122,7 @@
       "reference": "SELECT product_name, price_uah, CASE WHEN price_uah < 500 THEN 'бюджет' WHEN price_uah < 2000 THEN 'середній' ELSE 'преміум' END AS segment FROM products",
       "hints": [
         "Три сегменти — дві умови WHEN і ELSE для решти.",
-        "WHEN price_uah < 500 THEN 'бюджет' WHEN price_uah < 2000 THEN 'середній' ELSE 'преміум' — між CASE і END.",
+        "У CASE дві умови WHEN — від меншого порога до більшого, порядок важливий — і ELSE для решти; закінчується END, а після нього назва колонки через AS.",
         "Приклад на іншій таблиці: SELECT order_id, CASE WHEN discount_uah > 0 THEN 'зі знижкою' ELSE 'без знижки' END AS promo FROM orders LIMIT 5"
       ],
       "success": "Значення сегментів пиши точно як у завданні: 'Бюджет' і 'бюджет' для бази — різні слова."

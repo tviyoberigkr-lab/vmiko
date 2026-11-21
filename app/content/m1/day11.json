@@ -120,7 +120,7 @@
       "sandbox": "SELECT delivery_method,\n       COUNT(*) AS orders_cnt,\n       ROUND(AVG(total_uah), 0) AS avg_check\nFROM orders\nWHERE status = 'delivered'\n  AND order_date BETWEEN '2026-01-01' AND '2026-06-30'\nGROUP BY delivery_method\nHAVING COUNT(*) > 1000\nORDER BY avg_check DESC",
       "options": [
         {
-          "text": "Для доставлених замовлень першого півріччя 2026 рахує по кожному способу доставки кількість і середній чек, лишає способи, де понад 1000 замовлень, і сортує від найбільшого чека.",
+          "text": "Для доставлених замовлень першого півріччя 2026 рахує за кожним способом доставки кількість і середній чек, лишає способи, де понад 1000 замовлень, і сортує від найбільшого чека.",
           "correct": true,
           "explain": "Так. Читай у порядку виконання: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."
         },
@@ -152,7 +152,7 @@
       "reference": "SELECT delivery_method, COUNT(*) AS orders_cnt, ROUND(AVG(total_uah), 0) AS avg_check FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method HAVING COUNT(*) > 3000 ORDER BY avg_check DESC",
       "hints": [
         "Змінити треба лише два місця: період і поріг кількості.",
-        "Дати в BETWEEN → '2025-01-01' і '2025-12-31'; у HAVING → COUNT(*) > 3000.",
+        "Структура вже готова, міняти треба лише два місця: межі періоду у фільтрі за датою і число в умові на кількість замовлень у групі.",
         "Приклад на іншій таблиці: якщо в SELECT brand, COUNT(*) FROM products GROUP BY brand HAVING COUNT(*) > 20 треба поріг 25 — міняєш лише число в HAVING."
       ],
       "success": "Самовивіз випав: за 2025 рік у нього менше 3000 доставлених замовлень. Правити чужий запит, не ламаючи решту, — щоденна робота аналітика."
@@ -168,7 +168,7 @@
       "reference": "SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand HAVING COUNT(*) > 20 ORDER BY AVG(price_uah) DESC",
       "hints": [
         "Розклади прохання на етапи: групи → фільтр груп → колонки → сортування.",
-        "GROUP BY brand, HAVING COUNT(*) > 20, ORDER BY AVG(price_uah) DESC.",
+        "Групуй за брендом. Фільтр на кількість у групі — це HAVING, а не WHERE. Сортування за середньою ціною від найбільшої; вираз для середнього повтори в ORDER BY.",
         "Приклад на іншій таблиці: SELECT city, COUNT(*) FROM customers GROUP BY city HAVING COUNT(*) > 1000 ORDER BY COUNT(*) DESC"
       ],
       "success": "Ти перетворив фразу людини на запит — це головна навичка аналітика, решта — синтаксис."
@@ -204,7 +204,7 @@
       "title": "Повтор: DATE_TRUNC",
       "minutes": 1,
       "device": "any",
-      "prompt": "Як згрупувати замовлення **по тижнях**?",
+      "prompt": "Як згрупувати замовлення **за тижнями**?",
       "options": [
         {
           "text": "GROUP BY DATE_TRUNC('week', order_date)",
@@ -214,7 +214,7 @@
         {
           "text": "GROUP BY order_date",
           "correct": false,
-          "explain": "Це групування по днях — сотні рядків."
+          "explain": "Це групування за днями — сотні рядків."
         },
         {
           "text": "GROUP BY DATE_TRUNC(order_date, 'week')",

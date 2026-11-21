@@ -4,8 +4,8 @@
  * CoLaba Production
  */
 import { editorHtml, syncEditor, handleRunShortcut } from './editor.js';
-import { LocalStorageAdapter, MemoryAdapter, createProgressStore } from './storage.js';
-import { createDb } from './db.js';
+import { LocalStorageAdapter, MemoryAdapter, createProgressStore, describeSaveError } from './storage.js';
+import { createDb, ensureServiceWorker } from './db.js';
 import { hintAvailability, getHint, level3Source } from './mentor.js';
 import { explainPgError } from './checker.js';
 
@@ -91,18 +91,37 @@ function renderHome() {
       ${cont}
       ${days}
       <footer class="foot">
+        <div class="settings" data-testid="settings">
+          <button class="btn" data-act="export" data-testid="export">Зберегти прогрес у файл</button>
+          <button class="btn" data-act="import" data-testid="import">Відновити з файлу</button>
+        </div>
         <button class="btn link" data-act="reset">Скинути прогрес</button>
         <p class="sig">CoLaba Production</p>
       </footer>
     </main>`;
 }
 
+// Повертає HTML (у стані error — з кнопкою «Спробувати ще»); вставляти через innerHTML.
+const DB_STAGE = { start: 'готуюсь', engine: 'завантажую рушій бази', 'engine-init': 'запускаю PostgreSQL', data: 'завантажую дані', import: 'імпортую таблиці (лише перший раз)', verify: 'перевіряю базу на пристрої' };
+const fmtMb = (b) => (b / 1048576).toFixed(1).replace('.', ',');
 function dbStatusText() {
+  const p = state.dbProgress;
   switch (state.dbStatus) {
-    case 'loading': return 'База завантажується…';
-    case 'restarting': return 'База перезапускається…';
-    case 'ready': return `База готова · ${state.dbInfo ? (state.dbInfo.timings.total / 1000).toFixed(1) + ' с' + (state.dbInfo.fromCache ? ' (з пристрою)' : '') : ''}`;
-    case 'error': return 'База не завантажилась';
+    case 'loading': {
+      let s = 'База завантажується' + (p && DB_STAGE[p.stage] ? ': ' + DB_STAGE[p.stage] : '') + '…';
+      if (p && p.loaded > 0) s += p.total >= p.loaded ? ` ${fmtMb(p.loaded)} з ${fmtMb(p.total)} МБ (${Math.floor((p.loaded / p.total) * 100)}%)` : ` ${fmtMb(p.loaded)} МБ`;
+      return esc(s);
+    }
+    case 'restarting': return esc(p && p.attempt ? `База перезапускається (спроба ${p.attempt + 1} з 3)…` : 'База перезапускається…');
+    case 'ready': return esc(`База готова · ${state.dbInfo ? (state.dbInfo.timings.total / 1000).toFixed(1) + ' с' + (state.dbInfo.fromCache ? ' (з пристрою)' : '') : ''}`);
+    case 'error': {
+      const e = state.dbError || {};
+      const why = e.code === 'stall' ? 'завантаження зупинилось (повільна або перервана мережа)'
+        : e.code === 'network' || (typeof navigator !== 'undefined' && navigator.onLine === false) ? 'немає з\'єднання з інтернетом'
+        : e.code === 'http' ? 'сервер не віддав файл (' + (e.message || '') + ')'
+        : (e.message || 'невідома помилка');
+      return `${esc('База не завантажилась: ' + why + '.')} <button class="btn" style="margin-top:6px" data-act="db-retry" data-testid="db-retry">Спробувати ще</button>`;
+    }
     default: return '';
   }
 }
@@ -318,9 +337,11 @@ async function onClick(e) {
   if (!b || b.disabled) return;
   const act = b.dataset.act;
   if (act === 'reset') {
-    if (confirm('Скинути весь прогрес? Це не можна скасувати.')) { await store.reset(); state.runResults = {}; state.checkResults = {}; rerender(); }
+    if (confirm('Скинути весь прогрес? Знімок поточного стану збережеться в браузері, але краще спершу натисни «Зберегти прогрес у файл».')) { await store.reset(); state.runResults = {}; state.checkResults = {}; rerender(); }
     return;
   }
+  if (act === 'export') { exportProgress(); return; }
+  if (act === 'import') { importProgress(); return; }
   const ex = currentEx();
   if (!ex) return;
   const st = store.exercise(ex.id);
@@ -395,6 +416,8 @@ async function runSql(ex, sql) {
 
 async function checkSql(ex, sql) {
   const st = store.exercise(ex.id);
+  if (st.status === 'passed') return; // зараховане не перевіряємо повторно (інакше статус знизився б)
+  // submitted пишеться і в сховище; якщо вкладку закриють посеред перевірки, createProgressStore при старті поверне in_progress
   store.updateExercise(ex.id, { status: 'submitted' });
   state.checkResults[ex.id] = { pending: true };
   state.busy = true; rerender();
@@ -435,14 +458,88 @@ function route() {
   if (sel) { const t2 = $app.querySelector('textarea.sql'); if (t2) { t2.focus(); t2.setSelectionRange(sel[0], sel[1]); } }
 }
 
+// ------------------------------------------------------------------ збереження: банер, експорт, імпорт (група А)
+const saveNotice = { mode: 'local', probeError: null, brokenDismissed: false };
+
+/** Банер над застосунком, якщо прогрес не зберігається або був пошкоджений. Живе поза #app, тож рендер його не стирає. */
+function updateSaveBanner() {
+  const err = store.lastError || saveNotice.probeError;
+  let msg = '';
+  let closable = false;
+  if (saveNotice.mode === 'memory') msg = 'Прогрес не зберігається: браузер не дає доступу до сховища (можливо, приватний режим). Перед закриттям збережи прогрес у файл.';
+  else if (err) msg = `Прогрес не зберігається: ${describeSaveError(err)}. Збережи прогрес у файл, щоб не втратити зроблене.`;
+  else if (store.brokenKey && !saveNotice.brokenDismissed) { msg = `Збережений прогрес був пошкоджений — відновлено те, що вдалося. Оригінал лишився в сховищі браузера (${store.brokenKey}).`; closable = true; }
+  let el = document.getElementById('save-warn');
+  if (!msg) { if (el) el.remove(); return; }
+  if (el && el.dataset.msg === msg) return;
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'save-warn'; el.className = 'save-warn'; el.setAttribute('role', 'alert'); el.dataset.testid = 'save-warn';
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-banner]');
+      if (!b) return;
+      if (b.dataset.banner === 'export') exportProgress();
+      if (b.dataset.banner === 'close') { saveNotice.brokenDismissed = true; updateSaveBanner(); }
+    });
+    document.body.prepend(el);
+  }
+  el.dataset.msg = msg;
+  el.innerHTML = `<p>${esc(msg)}</p><div class="save-warn-act"><button class="btn" data-banner="export">Експортувати</button>${closable ? '<button class="btn link" data-banner="close">Закрити</button>' : ''}</div>`;
+}
+
+function exportProgress() {
+  const data = JSON.stringify(store.exportData(), null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+  a.download = `vmiko-progress-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function importProgress() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json,.json';
+  inp.addEventListener('change', async () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    try {
+      if (f.size > 5_000_000) throw new Error('файл завеликий для прогресу Vmiko.');
+      const r = store.importData(JSON.parse(await f.text()));
+      alert(`Прогрес відновлено з файлу: вправ — ${r.imported}, з них зараховано — ${r.passed}. Те, що вже було зроблено тут, збережено.`);
+      rerender();
+    } catch (e) {
+      alert('Не вдалося відновити прогрес: ' + (e instanceof SyntaxError ? 'файл пошкоджений або це не JSON.' : e.message));
+    }
+  });
+  inp.click();
+}
+
 // ------------------------------------------------------------------ старт
 async function boot() {
+  // Окремо перевіряємо читання і запис: якщо сховище лише переповнене, наявний прогрес усе одно завантажуємо.
   let adapter;
-  try { localStorage.setItem('vmiko:probe', '1'); localStorage.removeItem('vmiko:probe'); adapter = new LocalStorageAdapter(); }
-  catch (_) { adapter = new MemoryAdapter(); console.warn('localStorage недоступний — прогрес не збережеться після закриття'); }
-  store = await createProgressStore(adapter);
+  try {
+    localStorage.getItem('vmiko:progress');
+    adapter = new LocalStorageAdapter();
+    try { localStorage.setItem('vmiko:probe', '1'); localStorage.removeItem('vmiko:probe'); }
+    catch (e) { saveNotice.probeError = e; console.warn('localStorage: запис не вдається', e); }
+  } catch (e) {
+    adapter = new MemoryAdapter(); saveNotice.mode = 'memory';
+    console.warn('localStorage недоступний — прогрес не збережеться після закриття', e);
+  }
+  store = await createProgressStore(adapter); // битий запис не валить старт: нормалізація + копія :broken:
+  store.subscribe((s, err, ev) => { if (ev === 'saved') saveNotice.probeError = null; updateSaveBanner(); });
+  updateSaveBanner();
   window.addEventListener('pagehide', () => store.flushNow());
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') store.flushNow(); });
+  if (saveNotice.mode === 'local') {
+    // інша вкладка (або PWA) записала прогрес — зливаємо з нашим, щоб не затерти її зарахування
+    window.addEventListener('storage', (e) => {
+      if (e.key !== null && e.key !== adapter.fullKey('progress')) return;
+      store.reloadFromDisk().then((changed) => { if (changed && !$app.querySelector('textarea.sql:focus')) rerender(); })
+        .catch((err) => console.warn('[storage] не вдалося підхопити зміни іншої вкладки', err));
+    });
+  }
 
   const index = await fetch('content/index.json').then((r) => r.json());
   state.moduleTitle = index.module;
@@ -452,24 +549,34 @@ async function boot() {
     day.exercises.forEach((e, idx) => state.byId.set(e.id, { day, idx }));
   }
 
+  // Service worker — ДО старту БД: тоді воркер БД теж під контролем SW і важкі файли кешуються з першого запиту
+  // (без подвійного завантаження, див. docs/decisions.md Р9).
+  const perf = new URLSearchParams(location.search).has('perf') ? (await import('./perf.js')).startPerfPanel() : null;
   db = createDb({
     visibleUrl: new URL('data/koshyk_visible.json', location.href).href,
     hiddenUrl: new URL('data/koshyk_hidden.json', location.href).href,
     datasetVersion: state.days[0].dataset_version, // однакова для всіх днів (перевіряє tools/test_content.js)
     onStatus: (s, info) => {
+      if (perf) perf.onStatus(s, info);
+      const progressOnly = s === 'loading' && state.dbStatus === 'loading';
       state.dbStatus = s;
+      if (s === 'loading' || s === 'restarting') state.dbProgress = info || null;
       if (s === 'ready') { state.dbInfo = info; window.__vmikoDbInfo = info; }
       if (s === 'error') state.dbError = info;
-      if (!$app.querySelector('textarea.sql:focus')) rerender();
+      if (!progressOnly && !$app.querySelector('textarea.sql:focus')) rerender();
       else {
-        // курсор у редакторі — не перемальовуємо, лише оновлюємо статус і кнопки
-        const el = $app.querySelector('.db-status'); if (el) el.textContent = dbStatusText();
+        // прогрес або курсор у редакторі — не перемальовуємо, лише оновлюємо статус і кнопки
+        $app.querySelectorAll('.db-status').forEach((el) => { el.innerHTML = dbStatusText(); });
         const ready = s === 'ready' && !state.busy;
         $app.querySelectorAll('button[data-act="run"], button[data-act="check-sql"]').forEach((b) => { b.disabled = !ready; });
       }
     },
   });
-  db.init().catch((e) => console.error('DB init failed', e));
+  state.dbStatus = 'loading'; // поки чекаємо SW — інтерфейс уже працює, кнопки SQL неактивні
+  ensureServiceWorker('sw.js')
+    .then((sw) => { window.__vmikoSw = sw; return db.init(); })
+    .catch((e) => console.error('DB init failed', e));
+  $app.addEventListener('click', (e) => { if (e.target.closest('[data-act="db-retry"]')) db.retry().catch(() => {}); });
 
   $app.addEventListener('click', onClick);
   $app.addEventListener('input', onInput);
@@ -479,9 +586,7 @@ async function boot() {
   route();
   window.__vmiko = { store, db, state }; // для автотестів і налагодження
 
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW не зареєстровано', e));
-  }
+  // service worker реєструється вище, до старту БД (ensureServiceWorker)
 }
 
 boot().catch((e) => {

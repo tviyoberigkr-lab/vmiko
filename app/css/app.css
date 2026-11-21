@@ -120,3 +120,11 @@ table.res th { position: sticky; top: 0; background: #f1eee6; font-weight: 700; 
 .badge-ico { font-size: 2.6rem; line-height: 1; color: var(--accent); }
 .badge-title { font-size: 1.25rem; font-weight: 800; margin: 10px 0 4px; }
 .badge-text { color: var(--muted); margin: 0; }
+
+/* група А: банер збою збереження і блок експорту/імпорту на головній */
+.save-warn { position: sticky; top: 0; z-index: 10; background: var(--bad-bg); color: var(--bad); border-bottom: 1px solid var(--bad); padding: 10px 16px; font-size: .9rem; }
+.save-warn p { margin: 0 0 8px; }
+.save-warn-act { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.save-warn .btn { min-height: 40px; padding: 8px 14px; }
+.settings { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
+.settings .btn { flex: 1 1 140px; font-size: .9rem; }

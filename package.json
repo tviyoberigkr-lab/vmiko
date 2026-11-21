@@ -8,7 +8,7 @@
     "build:db": "node tools/build_db.js",
     "vendor": "node tools/vendor_pglite.js",
     "build": "node tools/gen_koshyk.js && node tools/build_db.js",
-    "test": "node tools/test_gen.js && node tools/test_checker.js && node tools/test_content.js",
+    "test": "node tools/test_gen.js && node tools/test_checker.js && node tools/test_content.js && node tools/test_storage.js",
     "serve": "node tools/serve.js"
   },
   "devDependencies": {

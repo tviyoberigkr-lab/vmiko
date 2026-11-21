@@ -83,7 +83,7 @@
       "reference": "SELECT order_id, order_date, total_uah FROM orders WHERE total_uah > 5000 AND status = 'delivered'",
       "hints": [
         "Дві умови мають виконуватися одночасно — з'єднай їх словом AND.",
-        "total_uah > 5000 AND status = '…'. Число без лапок, статус — у лапках.",
+        "З'єднай дві умови через AND: перша порівнює суму з числом (число без лапок, знак — строго «більше»), друга порівнює статус із текстом (текст у лапках).",
         "Приклад на іншій таблиці: SELECT product_name, price_uah FROM products WHERE price_uah > 3000 AND brand = 'Philips'"
       ],
       "success": "«Понад 5000» — це строго більше: > 5000. Якби було «від 5000» — тоді >= 5000."
@@ -221,7 +221,7 @@
       "title": "Укрпошта або самовивіз",
       "minutes": 5,
       "device": "any",
-      "prompt": "Олена порівнює дешеві способи доставки. Знайди замовлення, доставлені способом **«Укрпошта» або «Самовивіз»**, на суму **понад 3000 грн**. Виведи `order_id`, `delivery_method`, `total_uah`.",
+      "prompt": "Олена порівнює дешеві способи доставки. Знайди замовлення зі способом доставки **«Укрпошта» або «Самовивіз»** (**будь-якого статусу**, статус не фільтруємо) на суму **понад 3000 грн**. Виведи `order_id`, `delivery_method`, `total_uah`.",
       "starter": "SELECT order_id, delivery_method, total_uah\nFROM orders\nWHERE ",
       "reference": "SELECT order_id, delivery_method, total_uah FROM orders WHERE (delivery_method = 'Укрпошта' OR delivery_method = 'Самовивіз') AND total_uah > 3000",
       "hints": [

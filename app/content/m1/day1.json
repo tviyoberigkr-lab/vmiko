@@ -264,7 +264,7 @@
       },
       "hints": [
         "Чотири колонки через кому після SELECT.",
-        "SELECT product_name, category, brand, price_uah FROM … LIMIT …",
+        "Спочатку перелік чотирьох колонок через кому, далі FROM і назва таблиці, а останнім — LIMIT із потрібною кількістю рядків.",
         "Приклад на іншій таблиці: SELECT order_id, order_date, status, total_uah FROM orders LIMIT 5"
       ],
       "success": "День 1 майже завершено: ти вмієш дістати потрібні колонки з будь-якої таблиці."

@@ -30,7 +30,7 @@
       "options": [
         { "text": "0 — порівняння з NULL через = ніколи не буває правдою", "correct": true, "explain": "Так. Для NULL — лише IS NULL / IS NOT NULL." },
         { "text": "Усі скасовані й ті, що в дорозі", "correct": false, "explain": "Так спрацював би IS NULL. А = NULL дає «невідомо» для кожного рядка." },
-        { "text": "Помилку", "correct": false, "explain": "Помилки не буде — і це підступно: просто 0 рядків." }
+        { "text": "Помилку", "correct": false, "explain": "Помилки не буде — база чесно поверне 0 рядків." }
       ]
     },
     {
@@ -71,7 +71,7 @@
       "check": { "orderKey": [2] },
       "hints": [
         "Чотири умови, усі через AND, і сортування за сумою.",
-        "delivery_method = 'Укрпошта', status = 'delivered', order_date BETWEEN '2025-10-01' AND '2025-12-31', total_uah > 10000; наприкінці ORDER BY total_uah DESC.",
+        "Чотири умови через AND: спосіб доставки, статус, період (початок і кінець кварталу) і поріг суми. Наприкінці — сортування за сумою від найбільшої.",
         "Приклад на іншій таблиці: SELECT * FROM customers WHERE city = 'Львів' AND acquisition_channel = 'google_ads' AND registered_at BETWEEN '2025-01-01' AND '2025-03-31' ORDER BY registered_at DESC"
       ],
       "success": "Кілька умов поспіль через AND — найчастіший запит у роботі аналітика."
@@ -148,7 +148,7 @@
       "check": { "orderKey": [3] },
       "hints": [
         "Розклади прохання Олени на частини: статус, період, сума, сортування.",
-        "status = 'cancelled', order_date BETWEEN '2026-07-01' AND '2026-09-30', total_uah > 3000, ORDER BY total_uah DESC.",
+        "Чотири частини: статус, період (кінець кварталу порахуй сам), поріг суми і сортування за сумою від найбільшої. Умови фільтра з'єднай через AND.",
         "Приклад на іншій таблиці: SELECT full_name, city, registered_at FROM customers WHERE acquisition_channel = 'referral' AND registered_at BETWEEN '2026-04-01' AND '2026-06-30' ORDER BY registered_at DESC"
       ],
       "success": "Перший робочий запит для Олени готовий. Наступна вправа — що з цим списком сказати."

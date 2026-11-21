@@ -3,10 +3,13 @@
 Наскрізна перевірка застосунку в headless Chrome (Playwright for Python).
 Запуск:  python3 tools/smoke_browser.py   (потрібні: pip install playwright; Chrome/Chromium)
 Перевіряє: старт PGlite у воркері, виконання SQL у браузері, перевірку на прихованих даних,
-Parsons, вибір, автозбереження після перезавантаження, таймаут важкого запиту, офлайн через service worker.
+Parsons, вибір, автозбереження після перезавантаження, таймаут важкого запиту, офлайн через service worker,
+прогрес і «Спробувати ще» при збої завантаження, відновлення пошкодженої IndexedDB, ?perf=1.
 CoLaba Production
 """
 import os, re, subprocess, sys, time, json, shutil
+import logging
+logging.getLogger("asyncio").setLevel(logging.CRITICAL)  # шум Playwright про скасовані «завислі» маршрути в тесті [10]
 
 from playwright.sync_api import sync_playwright
 
@@ -40,10 +43,16 @@ def main():
             print("\n[1] Старт і завантаження бази")
             t0 = time.time()
             page.goto(BASE)
+            # прогрес у МБ видно під час першого завантаження (пункт 8 ДО_ВИПРАВЛЕННЯ)
+            page.wait_for_function("(document.querySelector('[data-testid=db-status]')?.textContent || '').includes('МБ') || window.__vmikoDbInfo !== undefined", timeout=120000)
+            ptxt = page.evaluate("document.querySelector('[data-testid=db-status]')?.textContent || ''")
+            check("під час першого старту видно прогрес завантаження в МБ", "МБ" in ptxt and "з" in ptxt, ptxt)
             page.wait_for_function("window.__vmikoDbInfo !== undefined", timeout=120000)
             info = page.evaluate("window.__vmikoDbInfo")
             check("PGlite стартував у воркері і завантажив обидва набори", info["datasetVersion"] == "koshyk-1.0.0", json.dumps(info["timings"]))
             print(f"      (з відкриття сторінки до готовності бази: {time.time()-t0:.1f} с; persistent={info.get('persistent')}, fromCache={info.get('fromCache')})")
+            sw = page.evaluate("window.__vmikoSw || null")
+            check("перший старт: БД стартувала вже під контролем service worker (кожен байт — один раз)", bool(sw and sw["controlled"]), json.dumps(sw))
             page.evaluate("window.__vmikoDbInfo = undefined")
             t0 = time.time()
             page.reload()
@@ -52,6 +61,10 @@ def main():
             check("повторний запуск бере базу з IndexedDB (без повторного завантаження)", info2.get("fromCache") is True, json.dumps(info2["timings"]))
             print(f"      (повторний запуск: {time.time()-t0:.1f} с)")
             page.screenshot(path=os.path.join(SHOTS, "01_home.png"), full_page=False)
+            page.goto(BASE + "?perf=1")
+            page.wait_for_function("(document.querySelector('[data-testid=perf-panel]')?.textContent || '').includes('Час до')", timeout=120000)
+            ptxt = page.locator("[data-testid=perf-panel]").inner_text()
+            check("?perf=1 показує панель заміру (час до готовності, мережа, браузер)", "Разом з мережі" in ptxt and "Браузер:" in ptxt, ptxt.splitlines()[2] if len(ptxt.splitlines()) > 2 else ptxt)
 
             print("\n[2] SQL-задача: запуск і перевірка")
             page.goto(BASE + "#/ex/m1-d2-02")
@@ -165,7 +178,7 @@ def main():
             page.click("[data-testid=check]"); page.wait_for_selector("[data-testid=verdict]", timeout=30000)
             check("день 4: Parsons з ORDER BY зараховано", "Правильно" in page.locator("[data-testid=verdict]").inner_text())
             page.goto(BASE + "#/ex/m1-d12-09")
-            for _ in range(4): page.click("[data-testid=screen-next]")
+            while page.locator("[data-testid=screen-next]").count(): page.click("[data-testid=screen-next]")  # кількість екранів задає контент
             check("день 12: підсумкова картка показує бейдж", "SQL-основи" in page.locator("[data-testid=badge]").inner_text())
             page.screenshot(path=os.path.join(SHOTS, "08_milestone.png"), full_page=True)
             page.click("[data-testid=complete]")
@@ -189,13 +202,16 @@ def main():
             print("\n[9] Офлайн (service worker)")
             page.goto(BASE)
             page.wait_for_function("navigator.serviceWorker && navigator.serviceWorker.controller !== null", timeout=60000)
-            # дочекатися, поки SW докешує важкі файли
-            n = 0
-            for _ in range(120):
-                n = page.evaluate("async () => (await (await caches.open('heavy-pglite-0.5.17-koshyk-1.0.0')).keys()).length")
-                if n >= 15: break
+            # heavy-кеш наповнюється лише з реальних запитів воркера БД (без повторного завантаження в install)
+            need = ["vendor/pglite/index.js", "vendor/pglite/pglite.wasm", "vendor/pglite/pglite.data", "vendor/pglite/initdb.wasm", "data/koshyk_visible.json?v=koshyk-1.0.0", "data/koshyk_hidden.json?v=koshyk-1.0.0"]
+            miss = need
+            for _ in range(60):
+                keys = page.evaluate("async () => (await (await caches.open('heavy-pglite-0.5.17-koshyk-1.0.0')).keys()).map((r) => r.url)")
+                miss = [u for u in need if not any(k.endswith("/" + u) for k in keys)]
+                if not miss: break
                 time.sleep(0.5)
-            check("service worker закешував PGlite і датасети", n >= 15, f"{n} файлів")
+            check("service worker закешував PGlite і датасети з першого старту", not miss, f"{len(keys)} файлів" if not miss else "немає: " + ", ".join(miss))
+
             ctx.set_offline(True)
             page.evaluate("window.__vmikoDbInfo = undefined")
             page.reload()
@@ -206,6 +222,59 @@ def main():
             page.wait_for_selector("[data-testid=result]", timeout=30000)
             check("без мережі застосунок відкрився і SQL виконується", "5 рядків" in page.locator(".rmeta").inner_text())
             ctx.set_offline(False)
+            ctx.close()
+
+            print("\n[10] Збій завантаження: автоперезапуски (≤2), далі «Спробувати ще»")
+            ctx = browser.new_context(service_workers="block", locale="uk-UA")
+            ctx.add_init_script("globalThis.__VMIKO_STALL_MS__ = { net: 3000, cpu: 60000 }")
+            hold = []
+            ctx.route("**/data/koshyk_visible.json*", lambda route: hold.append(route))  # запит «зависає» без відповіді
+            page = ctx.new_page()
+            page.on("pageerror", lambda e: errors.append(str(e)))
+            t1 = time.time()
+            page.goto(BASE)
+            page.wait_for_selector("[data-testid=db-retry]", timeout=120000)
+            stxt = page.locator("[data-testid=db-status]").inner_text()
+            check("після 3 спроб без прогресу — помилка з причиною і кнопкою «Спробувати ще»", "зупинилось" in stxt, f"{time.time()-t1:.0f} с; {len(hold)} запити датасету; {stxt[:80]}")
+            check("рівно 3 спроби (1 + 2 автоперезапуски), не нескінченний цикл", len(hold) == 3, str(len(hold)))
+            time.sleep(4)
+            check("після помилки нових спроб немає", len(hold) == 3, str(len(hold)))
+            ctx.unroute_all(behavior="ignoreErrors")  # зняти «зависання»; завислі запити старих воркерів уже не потрібні
+            page.click("[data-testid=db-retry]")
+            page.wait_for_function("window.__vmikoDbInfo !== undefined", timeout=120000)
+            check("«Спробувати ще» запускає завантаження заново і база готова", page.evaluate("window.__vmikoDbInfo.datasetVersion") == "koshyk-1.0.0")
+            ctx.close()
+
+            print("\n[11] Пошкоджена база в IndexedDB і стара версія бази")
+            ctx = browser.new_context(service_workers="block", locale="uk-UA")
+            page = ctx.new_page()
+            page.on("pageerror", lambda e: errors.append(str(e)))
+            page.goto(BASE)
+            page.wait_for_function("window.__vmikoDbInfo !== undefined", timeout=120000)
+            page.close()
+            page = ctx.new_page(); page.goto(BASE + "manifest.webmanifest")  # та сама адреса, але без запущеної бази
+            page.evaluate("""() => new Promise((res) => { const r = indexedDB.open('/pglite/vmiko-koshyk-0.9.0'); r.onupgradeneeded = () => r.result.createObjectStore('x'); r.onsuccess = () => { r.result.close(); res(1); }; })""")
+            cr = page.evaluate("""() => new Promise((res, rej) => { const r = indexedDB.open('/pglite/vmiko-koshyk-1.0.0'); r.onsuccess = () => { const d = r.result; const s = [...d.objectStoreNames][0];
+                const tx = d.transaction(s, 'readwrite'); const os = tx.objectStore(s); const k = os.getAllKeys();
+                k.onsuccess = () => { let n = 0; k.result.forEach((key, i) => { if (String(key).includes('base') && i % 3 == 0) { os.delete(key); n++; } }); tx.oncomplete = () => { d.close(); res({ total: k.result.length, deleted: n }); }; }; }; r.onerror = () => rej('idb'); })""")
+            page.close()
+            page = ctx.new_page()
+            page.on("pageerror", lambda e: errors.append(str(e)))
+            t1 = time.time()
+            page.goto(BASE)
+            page.wait_for_function("window.__vmikoDbInfo !== undefined", timeout=120000)
+            i1 = page.evaluate("window.__vmikoDbInfo")
+            check("пошкоджену базу стерто і заново імпортовано в постійну (не в пам'ять)", i1["persistent"] is True and i1["recovered"] is True and i1["fromCache"] is False,
+                  f"видалено {cr['deleted']} з {cr['total']} записів; {time.time()-t1:.1f} с; {i1['notes']}")
+            check("стару базу vmiko-koshyk-0.9.0 видалено", "/pglite/vmiko-koshyk-0.9.0" in i1.get("removedOld", []), str(i1.get("removedOld")))
+            page.evaluate("window.__vmikoDbInfo = undefined")
+            t1 = time.time()
+            page.reload()
+            page.wait_for_function("window.__vmikoDbInfo !== undefined", timeout=120000)
+            i2 = page.evaluate("window.__vmikoDbInfo")
+            check("наступний старт знову швидкий — з IndexedDB", i2["fromCache"] is True and i2["persistent"] is True, f"{time.time()-t1:.1f} с; {json.dumps(i2['timings'])}")
+            names = page.evaluate("async () => (await indexedDB.databases()).map((d) => d.name).filter((n) => n.startsWith('/pglite/vmiko-'))")
+            check("на пристрої лишилась одна база vmiko-*", names == ["/pglite/vmiko-koshyk-1.0.0"], str(names))
             browser.close()
     finally:
         srv.terminate()

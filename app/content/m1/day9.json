@@ -10,11 +10,11 @@
     {
       "id": "m1-d9-01",
       "type": "card",
-      "title": "Дати по місяцях: DATE_TRUNC",
+      "title": "Дати за місяцями: DATE_TRUNC",
       "minutes": 3,
       "device": "any",
       "screens": [
-        "Олена питає: «Як ішли продажі по місяцях?» Якщо групувати за `order_date`, вийде рядок на кожен **день** — сотні рядків.",
+        "Олена питає: «Як ішли продажі за місяцями?» Якщо групувати за `order_date`, вийде рядок на кожен **день** — сотні рядків.",
         "`DATE_TRUNC('month', order_date)` «обрізає» дату до першого числа місяця: 17 березня → 1 березня. Усі дні місяця стають однаковими — і їх можна згрупувати.",
         "`SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*)\nFROM orders\nGROUP BY month\nORDER BY month`",
         "Замість `'month'` можна `'quarter'` (квартал), `'year'`, `'week'`."
@@ -46,10 +46,10 @@
     {
       "id": "m1-d9-03",
       "type": "sql",
-      "title": "Замовлення по місяцях 2025 року",
+      "title": "Замовлення за місяцями 2025 року",
       "minutes": 4,
       "device": "any",
-      "prompt": "Виведи **місяць** і **кількість усіх замовлень** за кожен місяць **2025 року**, від січня до грудня.",
+      "prompt": "Виведи **місяць** і **кількість усіх замовлень** за кожен місяць **2025 року**, від січня до грудня. Місяць виведи як першу дату місяця — `DATE_TRUNC('month', …)`: саме цей формат прийнято в усіх вправах модуля, і за ним місяці сортуються як дати. Текст `TO_CHAR` або число `EXTRACT(MONTH …)` перевірка не зарахує, хоч у реальній роботі вони теж трапляються.",
       "starter": "SELECT DATE_TRUNC('month', order_date) AS month, \nFROM orders\nWHERE \nGROUP BY month\nORDER BY month",
       "reference": "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
       "hints": [
@@ -62,15 +62,15 @@
     {
       "id": "m1-d9-04",
       "type": "sql",
-      "title": "Виручка по місяцях 2025 року",
+      "title": "Виручка за місяцями 2025 року",
       "minutes": 5,
       "device": "any",
-      "prompt": "Тепер гроші. Виведи **місяць** і **виручку** (сума `total_uah` доставлених замовлень) за кожен місяць **2025 року**, від січня до грудня.",
+      "prompt": "Тепер гроші. Виведи **місяць** і **виручку** (сума `total_uah` доставлених замовлень) за кожен місяць **2025 року**, від січня до грудня. Місяць виведи як `DATE_TRUNC('month', …)` (перша дата місяця) — інші формати місяця, як-от `TO_CHAR` чи `EXTRACT`, перевірка не зарахує.",
       "starter": "",
       "reference": "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
       "hints": [
         "Як попередній запит, але сума замість кількості і ще одна умова у WHERE.",
-        "SUM(total_uah); у WHERE: status = 'delivered' AND order_date BETWEEN …; GROUP BY month ORDER BY month.",
+        "Як у попередній вправі, але замість кількості — сума по полю суми замовлення. У WHERE додається умова на статус, групування й сортування — за місяцем.",
         "Приклад на іншій таблиці: SELECT DATE_TRUNC('quarter', registered_at) AS q, COUNT(*) FROM customers WHERE acquisition_channel = 'telegram' GROUP BY q ORDER BY q"
       ],
       "success": "Ось вона — динаміка 2025 року. Восени зростання, у листопаді–грудні пік. А навесні щось не так…"
@@ -108,15 +108,15 @@
     {
       "id": "m1-d9-07",
       "type": "sql",
-      "title": "Перевір гіпотезу: VESNA25 по місяцях",
+      "title": "Перевір гіпотезу: VESNA25 за місяцями",
       "minutes": 4,
       "device": "any",
-      "prompt": "У VESNA25 `promo_code_id = 5`, діяв з 1 березня по 15 квітня 2025. Порахуй, **скільки замовлень з цим промокодом** було **в кожному місяці**: виведи місяць і кількість, по порядку місяців.",
+      "prompt": "У VESNA25 `promo_code_id = 5`, діяв з 1 березня по 15 квітня 2025. Порахуй, **скільки замовлень з цим промокодом** було **в кожному місяці**: виведи місяць і кількість, по порядку місяців. Місяць виведи як `DATE_TRUNC('month', …)` (перша дата місяця) — інші формати місяця, як-от `TO_CHAR` чи `EXTRACT`, перевірка не зарахує.",
       "starter": "",
       "reference": "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE promo_code_id = 5 GROUP BY month ORDER BY month",
       "hints": [
         "Фільтр за промокодом і групування за місяцем.",
-        "WHERE promo_code_id = 5, далі GROUP BY month ORDER BY month — як у вправі про місяці.",
+        "Фільтруй за ідентифікатором промокоду з умови, групуй і сортуй за місяцем. У SELECT: місяць і кількість рядків; формат місяця той самий, що в попередніх вправах.",
         "Приклад на іншій таблиці: SELECT DATE_TRUNC('month', registered_at) AS month, COUNT(*) FROM customers WHERE acquisition_channel = 'email' GROUP BY month ORDER BY month"
       ],
       "success": "Березня в результаті немає взагалі — жодного застосування, хоча код мав діяти з 1 березня. У квітні — 459. А рік тому VESNA24 у березні 2024 застосували 502 рази. Схоже, промокод зламався саме в березні 2025."
@@ -138,10 +138,10 @@
     {
       "id": "m1-d9-09",
       "type": "parsons",
-      "title": "Збери запит: нові клієнти по місяцях",
+      "title": "Збери запит: нові клієнти за місяцями",
       "minutes": 3,
       "device": "any",
-      "prompt": "А може, у березні просто прийшло менше нових клієнтів? Збери запит: **кількість реєстрацій по місяцях 2025 року**, по порядку місяців. Є зайві блоки.",
+      "prompt": "А може, у березні просто прийшло менше нових клієнтів? Збери запит: **кількість реєстрацій за місяцями 2025 року**, по порядку місяців. Є зайві блоки. Місяць виведи як `DATE_TRUNC('month', …)` (перша дата місяця) — інші формати місяця, як-от `TO_CHAR` чи `EXTRACT`, перевірка не зарахує.",
       "blocks": [
         "SELECT DATE_TRUNC('month', registered_at) AS month, COUNT(*)",
         "FROM customers",

@@ -37,7 +37,7 @@
       "starter": "SELECT city, COUNT(*)\nFROM customers\nGROUP BY city\n",
       "reference": "SELECT city, COUNT(*) FROM customers GROUP BY city HAVING COUNT(*) > 500",
       "hints": [
-        "Кількість по містах уже рахується. Бракує фільтра на цю кількість.",
+        "Кількість за містами уже рахується. Бракує фільтра на цю кількість.",
         "Після GROUP BY city допиши HAVING COUNT(*) > 500.",
         "Приклад на іншій таблиці: SELECT brand, COUNT(*) FROM products GROUP BY brand HAVING COUNT(*) >= 25"
       ],
@@ -83,7 +83,7 @@
       "starter": "",
       "reference": "SELECT category, AVG((price_uah - cost_uah)::numeric / price_uah) FROM products GROUP BY category HAVING AVG((price_uah - cost_uah)::numeric / price_uah) > 0.3",
       "hints": [
-        "Три частини: частка маржі (не забудь ::numeric!), AVG по категоріях і HAVING.",
+        "Три частини: частка маржі (не забудь ::numeric!), AVG за категоріями і HAVING.",
         "SELECT category, AVG(вираз) … GROUP BY category HAVING AVG(той самий вираз) > 0.3. У HAVING назву з AS писати не можна — повтори вираз.",
         "Приклад на іншій таблиці: SELECT delivery_method, AVG(discount_uah / total_uah) FROM orders WHERE total_uah > 0 GROUP BY delivery_method HAVING AVG(discount_uah / total_uah) > 0.01"
       ],
@@ -101,27 +101,27 @@
       "reference": "SELECT COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'",
       "hints": [
         "Два агрегати в одному рядку і два фільтри: статус і рік.",
-        "SELECT COUNT(*), SUM(total_uah) … WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'.",
+        "Результат — один рядок, тож без GROUP BY: у SELECT два агрегати (кількість рядків і сума по полю суми замовлення). У WHERE дві умови через AND: статус і дата від початку до кінця року.",
         "Приклад на іншій таблиці: SELECT COUNT(*), AVG(price_uah) FROM products WHERE category = 'Блендери'"
       ],
-      "success": "24 685 доставлених замовлень і 154,2 млн грн. Тепер розкладемо рік на квартали."
+      "success": "24 685 доставлених замовлень і 154,2 млн грн — попередньо, до очищення даних від дублікатів (про них — у кінці модуля). Тепер розкладемо рік на квартали."
     },
     {
       "id": "m1-d10-07",
       "type": "sql",
-      "title": "Питання 1: 2025 рік по кварталах",
+      "title": "Питання 1: 2025 рік за кварталами",
       "minutes": 4,
       "device": "prefer_desktop",
       "project": "Проєкт М1 · питання 1 з 5",
-      "prompt": "Розклади 2025 рік **по кварталах**: виведи квартал (`DATE_TRUNC('quarter', order_date)`), **кількість доставлених замовлень** і **виручку**, від I до IV кварталу.",
+      "prompt": "Розклади 2025 рік **за кварталами**: виведи квартал (`DATE_TRUNC('quarter', order_date)`), **кількість доставлених замовлень** і **виручку**, від I до IV кварталу. Квартал саме у такому вигляді — `DATE_TRUNC('quarter', …)` (перша дата кварталу): так квартали сортуються як дати. Текст чи число з `EXTRACT(QUARTER …)` перевірка не зарахує.",
       "starter": "",
       "reference": "SELECT DATE_TRUNC('quarter', order_date) AS quarter, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY quarter ORDER BY quarter",
       "hints": [
-        "Як виручка по місяцях з дня 9, лише 'quarter' замість 'month' і ще COUNT(*).",
-        "SELECT DATE_TRUNC('quarter', order_date) AS quarter, COUNT(*), SUM(total_uah) … GROUP BY quarter ORDER BY quarter.",
+        "Як виручка за місяцями з дня 9, лише 'quarter' замість 'month' і ще COUNT(*).",
+        "Як виручка за місяцями з дня 9, але крок обрізання дати — квартал, а в SELECT додається ще й підрахунок рядків. Групуй і сортуй за обрізаною датою.",
         "Приклад на іншій таблиці: SELECT DATE_TRUNC('quarter', registered_at) AS quarter, COUNT(*) FROM customers WHERE registered_at BETWEEN '2024-01-01' AND '2024-12-31' GROUP BY quarter ORDER BY quarter"
       ],
-      "success": "IV квартал — 53,4 млн грн, третина річної виручки. А I квартал найслабший — і не лише через зиму: в ньому той самий березень."
+      "success": "IV квартал — 53,4 млн грн (попередньо, до очищення від дублікатів), приблизно третина річної виручки. А I квартал найслабший — і не лише через зиму: в ньому той самий березень."
     },
     {
       "id": "m1-d10-08",
@@ -135,7 +135,7 @@
       "reference": "SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method ORDER BY COUNT(*) DESC",
       "hints": [
         "Групи — способи доставки, два агрегати, сортування за кількістю.",
-        "SELECT delivery_method, COUNT(*), AVG(total_uah) … GROUP BY delivery_method ORDER BY COUNT(*) DESC.",
+        "Групи — способи доставки. У SELECT: кількість рядків і середнє по полю суми замовлення. У WHERE ті самі дві умови, що в питанні 1. Сортування — за кількістю, найбільша перша.",
         "Приклад на іншій таблиці: SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand ORDER BY COUNT(*) DESC"
       ],
       "success": "Відповідь у таблиці. Тепер сформулюй її для Олени — у наступній вправі."

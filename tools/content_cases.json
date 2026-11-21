@@ -224,7 +224,9 @@
       "SELECT DATE_TRUNC('month', order_date)::date, SUM(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' AND status = 'delivered' GROUP BY 1 ORDER BY 1"
     ],
     "fail": [
-      "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month"
+      "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+      "SELECT TO_CHAR(order_date, 'YYYY-MM') AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+      "SELECT EXTRACT(MONTH FROM order_date) AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month"
     ]
   },
   "m1-d9-07": {
@@ -266,7 +268,8 @@
       "SELECT DATE_TRUNC('quarter', order_date)::date AS q, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date >= '2025-01-01' AND order_date < '2026-01-01' GROUP BY 1 ORDER BY 1"
     ],
     "fail": [
-      "SELECT DATE_TRUNC('month', order_date) AS q, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY q ORDER BY q"
+      "SELECT DATE_TRUNC('month', order_date) AS q, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY q ORDER BY q",
+      "SELECT EXTRACT(QUARTER FROM order_date) AS quarter, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY quarter ORDER BY quarter"
     ]
   },
   "m1-d10-08": {
@@ -326,6 +329,14 @@
     ],
     "fail": [
       "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2024-02-01' AND '2024-04-30' OR order_date BETWEEN '2025-02-01' AND '2025-04-30' GROUP BY month ORDER BY month"
+    ]
+  },
+  "m1-d2-08": {
+    "pass": [
+      "SELECT order_id, delivery_method, total_uah FROM orders WHERE delivery_method IN ('Укрпошта', 'Самовивіз') AND total_uah > 3000"
+    ],
+    "fail": [
+      "SELECT order_id, delivery_method, total_uah FROM orders WHERE (delivery_method = 'Укрпошта' OR delivery_method = 'Самовивіз') AND total_uah > 3000 AND status = 'delivered'"
     ]
   }
 }

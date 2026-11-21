@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Перевірка контенту уроків (app/content): структура, еталони на обох датасетах, стартовий код, Parsons,
- * три рівні підказок без готового запиту, посилання index.json на дні, додаткові розв'язки з tools/content_cases.json
+ * три рівні підказок без готового запиту (підказки 1–2 не повторюють еталон: ліміт токенів підряд і спільних літералів), посилання index.json на дні, додаткові розв'язки з tools/content_cases.json
  * (інші правильні записи мають зараховуватися, типові помилки — ні).
  * Запуск: node tools/test_content.js
  * CoLaba Production
@@ -31,6 +31,18 @@ function check(name, cond, detail) {
   const ids = new Set();
   const exById = new Map();
   const TYPES = new Set(['card', 'choice', 'sql', 'parsons', 'milestone']);
+  const HINT_MAX_RUN = 7, HINT_MAX_LITS = 2, HINT_MAX_RUN_EXAMPLE = 10;
+  const tokens = (s) => String(s).toLowerCase().match(/'[^']*'|[a-zа-яіїєґ_][\wа-яіїєґ]*|\d+(?:\.\d+)?|::|<>|>=|<=|!=|\S/g) || [];
+  const literals = (s) => new Set(String(s).toLowerCase().match(/'[^']*'|\b\d{2,}(?:\.\d+)?\b/g) || []);
+  const maxRun = (a, b) => {
+    let best = 0;
+    for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) {
+      let k = 0;
+      while (i + k < a.length && j + k < b.length && a[i + k] === b[j + k]) k++;
+      if (k > best) best = k;
+    }
+    return best;
+  };
   const norm = (s) => String(s).toLowerCase().replace(/[\s;]+/g, ' ').trim();
 
   // index.json: кожен день має унікальний id, файл існує, дні йдуть по порядку
@@ -75,6 +87,22 @@ function check(name, cond, detail) {
         check(`${tag}: має 3 авторські підказки (напрям → місце → приклад)`, Array.isArray(e.hints) && e.hints.length === 3 && e.hints.every((h) => typeof h === 'string' && h.trim().length > 10));
         // жодна підказка не містить готового еталонного запиту
         check(`${tag}: підказки не містять готового еталону`, e.starterPasses || (e.hints || []).every((h) => !norm(h).includes(norm(e.reference))));
+        // підказки 1 і 2 — напрям і структура, а не копія еталона: не більше HINT_MAX_RUN токенів еталона підряд
+        // і не більше HINT_MAX_LITS його літералів (рядків і чисел ≥ 2 цифр); короткі еталони (< 12 токенів) і вправи «запусти готове» — виняток;
+        // підказка 3 — приклад на іншій таблиці: ліміт м'якший
+        if (!e.starterPasses) {
+          const rt = tokens(e.reference), rl = literals(e.reference);
+          for (const hi of [0, 1, 2]) {
+            const h = e.hints[hi];
+            const run = maxRun(tokens(h), rt);
+            const lc = [...literals(h)].filter((x) => rl.has(x)).length;
+            if (hi < 2 && rt.length >= 12) {
+              check(`${tag}: підказка ${hi + 1} не повторює ${HINT_MAX_RUN}+ токенів еталона підряд (є ${run})`, run <= HINT_MAX_RUN, h);
+              check(`${tag}: підказка ${hi + 1} не містить значень еталона (літералів ${lc}, ліміт ${HINT_MAX_LITS})`, lc <= HINT_MAX_LITS, h);
+            }
+            if (hi === 2) check(`${tag}: приклад (підказка 3) не повторює еталон довше ${HINT_MAX_RUN_EXAMPLE} токенів підряд (є ${run})`, run <= HINT_MAX_RUN_EXAMPLE, h);
+          }
+        }
         const opt = C.optionsForExercise(e);
         const refSql = opt.mode === 'subset' ? e.check.referenceFull : e.reference;
         const rv = await R.runReadOnly(db, refSql, R.VISIBLE);

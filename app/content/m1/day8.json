@@ -14,7 +14,7 @@
       "minutes": 3,
       "device": "any",
       "screens": [
-        "Учора ти рахував одну виручку на весь магазин. Олена питає далі: «А **по кожному** способу доставки?»",
+        "Учора ти рахував одну виручку на весь магазин. Олена питає далі: «А **за кожним** способом доставки?»",
         "`GROUP BY` розкладає рядки на купки з однаковим значенням, а агрегат рахує по кожній купці:\n`SELECT delivery_method, COUNT(*)\nFROM orders\nGROUP BY delivery_method`",
         "Результат — **рядок на групу**: три способи доставки → три рядки.",
         "Правило: усе в `SELECT` — або колонка з `GROUP BY`, або агрегат (`COUNT`, `SUM`…). Інакше база не знає, яке значення показати для групи."
@@ -38,7 +38,7 @@
       "starter": "SELECT delivery_method, \nFROM orders\nWHERE status = 'delivered'\n",
       "reference": "SELECT delivery_method, SUM(total_uah) FROM orders WHERE status = 'delivered' GROUP BY delivery_method",
       "hints": [
-        "Сума по кожному способу — агрегат плюс групування.",
+        "Сума за кожним способом — агрегат плюс групування.",
         "Допиши SUM(total_uah) у SELECT і в кінці GROUP BY delivery_method.",
         "Приклад на іншій таблиці: SELECT category, SUM(price_uah) FROM products GROUP BY category"
       ],
@@ -47,7 +47,7 @@
     {
       "id": "m1-d8-03",
       "type": "sql",
-      "title": "Клієнти по містах",
+      "title": "Клієнти за містами",
       "minutes": 3,
       "device": "any",
       "prompt": "Де живуть клієнти? Виведи `city` і **кількість клієнтів** у кожному місті.",
@@ -55,7 +55,7 @@
       "reference": "SELECT city, COUNT(*) FROM customers GROUP BY city",
       "hints": [
         "Таблиця customers, групи — міста, рахуємо рядки.",
-        "SELECT city, COUNT(*) FROM customers GROUP BY …",
+        "У SELECT: місто і підрахунок рядків; таблиця — клієнти; після неї групування за містом.",
         "Приклад на іншій таблиці: SELECT brand, COUNT(*) FROM products GROUP BY brand — скільки товарів кожного бренду."
       ],
       "success": "Київ — понад чверть усіх клієнтів. Якщо Олена думає про пункт самовивозу, починати варто звідти."
@@ -101,7 +101,7 @@
       "minutes": 2,
       "device": "any",
       "screens": [
-        "Олена хоче знати середній чек по каналах реклами. Але суми лежать в `orders`, а канал — у `customers`. Їх треба склеїти за `customer_id`.",
+        "Олена хоче знати середній чек за каналами реклами. Але суми лежать в `orders`, а канал — у `customers`. Їх треба склеїти за `customer_id`.",
         "Це робить `JOIN` — його ми детально пройдемо в М2. Зараз він буде **вже написаний** у стартовому коді:\n`FROM orders o\nJOIN customers c ON c.customer_id = o.customer_id`\n`o` і `c` — короткі назви таблиць: `o.total_uah` — сума замовлення, `c.acquisition_channel` — канал клієнта."
       ],
       "question": {
@@ -116,7 +116,7 @@
     {
       "id": "m1-d8-07",
       "type": "sql",
-      "title": "Середній чек по каналах залучення",
+      "title": "Середній чек за каналами залучення",
       "minutes": 5,
       "device": "prefer_desktop",
       "prompt": "Виведи **канал залучення** (`c.acquisition_channel`) і **середній чек** — середню `o.total_uah` доставлених замовлень — для кожного каналу. Рядки з JOIN і фільтром уже є: допиши `SELECT` і `GROUP BY`.",
@@ -135,7 +135,7 @@
       "title": "Що означає результат по Telegram?",
       "minutes": 3,
       "device": "any",
-      "prompt": "Ось середній чек по каналах, відсортований. Який висновок для Олени чесний?",
+      "prompt": "Ось середній чек за каналами, відсортований. Який висновок для Олени чесний?",
       "sandbox": "SELECT c.acquisition_channel, COUNT(*) AS orders_cnt, ROUND(AVG(o.total_uah), 2) AS avg_check FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'delivered' GROUP BY c.acquisition_channel ORDER BY avg_check DESC",
       "options": [
         { "text": "Клієнти з Telegram мають середній чек ≈8 869 грн — приблизно на 40 % більше, ніж в інших каналах (5 945–6 471 грн). Варто подивитися, що саме вони купують.", "correct": true, "explain": "Так: число, порівняння і наступне питання. Без твердження, що Telegram «робить» чек вищим." },
@@ -147,7 +147,7 @@
     {
       "id": "m1-d8-09",
       "type": "parsons",
-      "title": "Збери запит: товари по категоріях",
+      "title": "Збери запит: товари за категоріями",
       "minutes": 3,
       "device": "any",
       "prompt": "Збери запит: для кожної **категорії** — **кількість товарів** і **середня ціна**. Є зайві блоки.",
