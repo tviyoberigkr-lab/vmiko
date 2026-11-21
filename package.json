@@ -1,0 +1,17 @@
+{
+  "name": "vmiko",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vmiko — навчання дата-аналітики через практику. CoLaba Production",
+  "scripts": {
+    "gen": "node tools/gen_koshyk.js",
+    "build:db": "node tools/build_db.js",
+    "vendor": "node tools/vendor_pglite.js",
+    "build": "node tools/gen_koshyk.js && node tools/build_db.js",
+    "test": "node tools/test_gen.js && node tools/test_checker.js && node tools/test_content.js",
+    "serve": "node tools/serve.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.17"
+  }
+}

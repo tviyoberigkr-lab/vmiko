@@ -1,0 +1,8 @@
+{
+  "track": "Дата-аналітик",
+  "module": "М1. Перші відповіді з даних: SQL-основи",
+  "days": [
+    { "id": "m1-d1", "file": "content/m1/day1.json" },
+    { "id": "m1-d2", "file": "content/m1/day2.json" }
+  ]
+}

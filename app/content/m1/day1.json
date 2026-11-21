@@ -1,0 +1,267 @@
+{
+  "id": "m1-d1",
+  "module": "М1",
+  "day": 1,
+  "title": "Що таке аналітик і таблиця даних. SELECT і LIMIT",
+  "dataset": "koshyk",
+  "dataset_version": "koshyk-1.0.0",
+  "content_version": 1,
+  "exercises": [
+    {
+      "id": "m1-d1-01",
+      "type": "card",
+      "title": "Ти — аналітик у «Кошику»",
+      "minutes": 3,
+      "device": "any",
+      "screens": [
+        "«Кошик» — інтернет-магазин побутової техніки та дрібниць. Власниця Олена щодня приймає рішення: що закупити, яку знижку дати, яку доставку розвивати.",
+        "Олена питає: «Скільки в нас замовлень? Хто наші клієнти? Що продається найкраще?» Відповіді лежать у базі даних. Аналітик дістає їх звідти й пояснює людською мовою.",
+        "База даних — це набір таблиць. Таблиця схожа на аркуш Excel: **рядок** — один запис (одне замовлення), **колонка** — одна властивість (дата, сума, статус).",
+        "Щоб попросити базу показати дані, пишуть запит мовою **SQL**. Наш перший запит уже за хвилину."
+      ],
+      "question": {
+        "prompt": "Що в таблиці замовлень `orders` означає один рядок?",
+        "options": [
+          {
+            "text": "Одне замовлення",
+            "correct": true,
+            "explain": "Так. Кожен рядок — окремий запис: одне замовлення з його датою, сумою, статусом."
+          },
+          {
+            "text": "Одна властивість, наприклад сума",
+            "correct": false,
+            "explain": "Це колонка. Рядок — це один запис цілком."
+          },
+          {
+            "text": "Один клієнт",
+            "correct": false,
+            "explain": "Клієнти лежать в окремій таблиці `customers`. У `orders` рядок — замовлення."
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-d1-02",
+      "type": "sql",
+      "title": "Перший запит: подивитися на замовлення",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Натисни **Запустити** — запит уже написаний. `SELECT *` означає «усі колонки», `FROM orders` — «з таблиці замовлень», `LIMIT 10` — «лише 10 рядків». Подивись на результат, потім натисни **Перевірити**.",
+      "starter": "SELECT * FROM orders LIMIT 10",
+      "reference": "SELECT * FROM orders LIMIT 10",
+      "check": {
+        "mode": "subset",
+        "rowCount": 10,
+        "referenceFull": "SELECT * FROM orders"
+      },
+      "hints": [
+        "Нічого міняти не треба: натисни «Запустити», а потім «Перевірити».",
+        "Якщо ти змінив текст — поверни: SELECT * FROM orders LIMIT 10"
+      ],
+      "success": "Ти щойно виконав свій перший SQL-запит. Саме так аналітик починає знайомство з будь-якою таблицею.",
+      "starterPasses": true
+    },
+    {
+      "id": "m1-d1-03",
+      "type": "choice",
+      "title": "Скільки колонок у таблиці?",
+      "minutes": 2,
+      "device": "any",
+      "prompt": "Запусти запит і порахуй колонки в результаті. Скільки колонок у таблиці `orders`?",
+      "sandbox": "SELECT * FROM orders LIMIT 10",
+      "options": [
+        {
+          "text": "6",
+          "correct": false,
+          "explain": "Замало. Прокрути результат праворуч — там ще є колонки."
+        },
+        {
+          "text": "8",
+          "correct": false,
+          "explain": "Майже. Прокрути результат до кінця праворуч."
+        },
+        {
+          "text": "10",
+          "correct": true,
+          "explain": "Так: order_id, customer_id, order_date, created_at, status, delivery_method, delivery_date, promo_code_id, discount_uah, total_uah."
+        },
+        {
+          "text": "12",
+          "correct": false,
+          "explain": "Забагато. Порахуй заголовки колонок ще раз."
+        }
+      ]
+    },
+    {
+      "id": "m1-d1-04",
+      "type": "card",
+      "title": "Обираємо лише потрібні колонки",
+      "minutes": 2,
+      "device": "any",
+      "screens": [
+        "`*` показує всі колонки. Але Олені не потрібні всі 10 — їй потрібні номер, дата і сума.",
+        "Замість `*` перелічуємо колонки **через кому**:\n`SELECT order_id, order_date, total_uah FROM orders`",
+        "Порядок колонок у результаті — такий, як ти їх перелічив. Назви колонок пишуться без лапок."
+      ],
+      "question": {
+        "prompt": "Як правильно вибрати дві колонки — номер і суму?",
+        "options": [
+          {
+            "text": "SELECT order_id, total_uah FROM orders",
+            "correct": true,
+            "explain": "Так: колонки через кому, після них FROM і таблиця."
+          },
+          {
+            "text": "SELECT order_id total_uah FROM orders",
+            "correct": false,
+            "explain": "Без коми база вирішить, що total_uah — нова назва для order_id, і поверне одну колонку."
+          },
+          {
+            "text": "SELECT 'order_id', 'total_uah' FROM orders",
+            "correct": false,
+            "explain": "В одинарних лапках — це текст, а не колонки. Отримаєш однакові слова в кожному рядку."
+          }
+        ]
+      }
+    },
+    {
+      "id": "m1-d1-05",
+      "type": "sql",
+      "title": "Номер, дата і сума — 20 замовлень",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Олена хоче побачити короткий список: **номер замовлення, дату і суму** (`order_id`, `order_date`, `total_uah`) — **20 рядків**. Напиши запит.",
+      "starter": "SELECT \nFROM orders\nLIMIT 20",
+      "reference": "SELECT order_id, order_date, total_uah FROM orders LIMIT 20",
+      "check": {
+        "mode": "subset",
+        "rowCount": 20,
+        "referenceFull": "SELECT order_id, order_date, total_uah FROM orders"
+      },
+      "hints": [
+        "Після SELECT перелічи три колонки через кому.",
+        "SELECT order_id, … , … FROM orders LIMIT 20 — дописати дві колонки."
+      ],
+      "success": "Чудово. Будь-які 20 рядків — правильна відповідь: без сортування база сама вирішує, які рядки показати першими."
+    },
+    {
+      "id": "m1-d1-06",
+      "type": "parsons",
+      "title": "Збери запит з блоків",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Збери запит: **назва товару і ціна** (`product_name`, `price_uah`) з таблиці `products`, **5 рядків**. Торкайся блоків по черзі. Є зайві блоки.",
+      "blocks": [
+        "SELECT",
+        "product_name, price_uah",
+        "FROM products",
+        "LIMIT 5"
+      ],
+      "distractors": [
+        "FROM orders",
+        "LIMIT five",
+        "product_name price_uah"
+      ],
+      "reference": "SELECT product_name, price_uah FROM products LIMIT 5",
+      "check": {
+        "mode": "subset",
+        "rowCount": 5,
+        "referenceFull": "SELECT product_name, price_uah FROM products"
+      },
+      "hints": [
+        "Порядок завжди такий: SELECT → колонки → FROM таблиця → LIMIT.",
+        "Колонки розділяються комою. Число в LIMIT пишеться цифрами."
+      ]
+    },
+    {
+      "id": "m1-d1-07",
+      "type": "sql",
+      "title": "Знайди помилку: де друга колонка?",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Колега хотів показати **номер замовлення і суму** для 5 замовлень. Запит виконується без помилки, але колонка в результаті одна. Запусти, знайди помилку і виправ.",
+      "starter": "SELECT order_id total_uah\nFROM orders\nLIMIT 5",
+      "reference": "SELECT order_id, total_uah FROM orders LIMIT 5",
+      "check": {
+        "mode": "subset",
+        "rowCount": 5,
+        "referenceFull": "SELECT order_id, total_uah FROM orders"
+      },
+      "hints": [
+        "Подивись на заголовок колонки в результаті: він називається total_uah, але значення — номери замовлень.",
+        "Між колонками бракує коми. Без коми друге слово стає новою назвою (псевдонімом) першої колонки."
+      ],
+      "success": "Це одна з найпідступніших помилок: запит не падає, а результат неправильний. Тепер ти її знаєш."
+    },
+    {
+      "id": "m1-d1-08",
+      "type": "sql",
+      "title": "Хто наші клієнти?",
+      "minutes": 3,
+      "device": "any",
+      "prompt": "Подивимось на таблицю клієнтів `customers`. Виведи **всі колонки**, **5 рядків**.",
+      "starter": "",
+      "reference": "SELECT * FROM customers LIMIT 5",
+      "check": {
+        "mode": "subset",
+        "rowCount": 5,
+        "referenceFull": "SELECT * FROM customers"
+      },
+      "hints": [
+        "Усі колонки — це зірочка *.",
+        "SELECT * FROM … LIMIT …"
+      ],
+      "success": "Бачиш колонку acquisition_channel? Це канал, звідки прийшов клієнт. Вона нам ще знадобиться."
+    },
+    {
+      "id": "m1-d1-09",
+      "type": "choice",
+      "title": "Повтор: що робить LIMIT",
+      "minutes": 1,
+      "device": "any",
+      "prompt": "Що робить `LIMIT 10` у кінці запиту?",
+      "options": [
+        {
+          "text": "Обмежує результат десятьма рядками",
+          "correct": true,
+          "explain": "Так. LIMIT — «не більше N рядків». Зручно, щоб швидко глянути на таблицю."
+        },
+        {
+          "text": "Показує 10 найбільших значень",
+          "correct": false,
+          "explain": "Ні: без сортування LIMIT бере будь-які рядки. «Найбільші» — це ORDER BY … DESC, буде в день 4."
+        },
+        {
+          "text": "Обмежує результат десятьма колонками",
+          "correct": false,
+          "explain": "Колонки обираються після SELECT. LIMIT стосується рядків."
+        },
+        {
+          "text": "Показує рядки з 10-го",
+          "correct": false,
+          "explain": "Для зсуву є окреме слово OFFSET. LIMIT — кількість рядків."
+        }
+      ]
+    },
+    {
+      "id": "m1-d1-10",
+      "type": "sql",
+      "title": "Каталог товарів",
+      "minutes": 4,
+      "device": "any",
+      "prompt": "Олена готує прайс. Виведи з `products` **назву, категорію, бренд і ціну** (`product_name`, `category`, `brand`, `price_uah`) — **15 рядків**.",
+      "starter": "",
+      "reference": "SELECT product_name, category, brand, price_uah FROM products LIMIT 15",
+      "check": {
+        "mode": "subset",
+        "rowCount": 15,
+        "referenceFull": "SELECT product_name, category, brand, price_uah FROM products"
+      },
+      "hints": [
+        "Чотири колонки через кому після SELECT.",
+        "SELECT product_name, category, brand, price_uah FROM … LIMIT …"
+      ],
+      "success": "День 1 майже завершено: ти вмієш дістати потрібні колонки з будь-якої таблиці."
+    }
+  ]
+}
