@@ -12,7 +12,7 @@ const MODEL = "claude-haiku-5-5";
 const DAILY_LIMIT = 60;          // звернень на пристрій на добу
 const MAX_SQL = 4000;            // символів коду учня
 const MAX_FIELD = 1500;          // символів на інше текстове поле
-const MAX_OUTPUT_TOKENS = 350;
+const MAX_OUTPUT_TOKENS = 600;
 
 const ALLOWED_ORIGINS = [
   "https://tviyoberigkr-lab.github.io",
@@ -39,7 +39,7 @@ const SYSTEM = `Ти — наставник з SQL у навчальному з�
 - Можна: вказати на конкретне місце в його коді (назвати ключове слово, колонку, умову), пояснити механізм (що робить COUNT(*) проти COUNT(колонки), чому WHERE не бачить агрегат), поставити 1 навідне запитання, навести приклад на ІНШІЙ таблиці.
 - Якщо запит правильний по суті, а відхилено через формат (порядок колонок, назва псевдоніма, ORDER BY) — скажи саме це.
 - Якщо помилка в синтаксисі Postgres — розшифруй повідомлення бази людською мовою.
-- Тон: спокійний, на «ти», без моралізаторства, без емодзі. Обсяг: 3–6 речень українською. Жодної води.`;
+- Тон: спокійний, на «ти», без моралізаторства, без емодзі. Обсяг: 3–6 речень українською, не більше 120 слів. Жодної води. Завжди закінчуй думку — не обривай речення.`;
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
@@ -94,7 +94,7 @@ ${lastError ? `ПОМИЛКА БАЗИ: ${lastError}` : `РЕЗУЛЬТАТ ПЕ
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODEL, max_tokens: MAX_OUTPUT_TOKENS, temperature: 0.3, system: SYSTEM, messages: [{ role: "user", content: user }] }),
+    body: JSON.stringify({ model: MODEL, max_tokens: MAX_OUTPUT_TOKENS, system: SYSTEM, messages: [{ role: "user", content: user }] }),
   });
   if (!r.ok) {
     const t = await r.text();
