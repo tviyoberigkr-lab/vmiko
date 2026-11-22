@@ -16,10 +16,10 @@
 const PGLITE_VERSION = '0.5.17';
 const DATASET_VERSION = 'koshyk-1.0.0';
 const HEAVY_VERSION = `heavy-pglite-${PGLITE_VERSION}-${DATASET_VERSION}`;
-const SHELL_VERSION = 'shell-v4';
+const SHELL_VERSION = 'shell-v5';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
-  'js/main.js', 'js/editor.js', 'js/storage.js', 'js/db.js', 'js/db-worker.js', 'js/sqlrunner.js', 'js/checker.js', 'js/mentor.js', 'js/perf.js',
+  'js/main.js', 'js/editor.js', 'js/storage.js', 'js/db.js', 'js/db-worker.js', 'js/sqlrunner.js', 'js/checker.js', 'js/mentor.js', 'js/config.js', 'js/perf.js',
   'content/index.json', 'content/m1/day1.json', 'content/m1/day2.json', 'content/m1/day3.json', 'content/m1/day4.json',
   'content/m1/day5.json', 'content/m1/day6.json', 'content/m1/day7.json', 'content/m1/day8.json', 'content/m1/day9.json',
   'content/m1/day10.json', 'content/m1/day11.json', 'content/m1/day12.json',

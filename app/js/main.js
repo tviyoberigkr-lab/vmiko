@@ -320,6 +320,12 @@ function hintsHtml(ex) {
     const t = (ex.hints || [])[l - 1];
     shownList.push(`<li class="hint lvl${l}"><b>Підказка ${l}${l === 3 ? ' (приклад)' : ''}:</b> ${md(t)}</li>`);
   }
+  // Повідомлення наставника показуємо й тоді, коли рівень 4 НЕ зарахований показаним
+  // (ліміт, бюджет, порожня відповідь, помилка в еталоні вправи): інакше учень не побачив би
+  // нічого, а кнопка лишилася б єдиною реакцією на натискання.
+  if (texts[AI_LEVEL] && maxShown < AI_LEVEL) {
+    shownList.push(`<li class="hint lvl4"><b>Наставник (ШІ):</b> ${md(texts[AI_LEVEL])}</li>`);
+  }
   const nextLvl = av.find((h) => !h.shown);
   let btn = '';
   if (nextLvl) {
@@ -386,18 +392,28 @@ async function onClick(e) {
         if (state.busy) return;
         state.busy = true; b.disabled = true; b.textContent = 'Наставник дивиться твій код…';
         try {
-          const h = await getHint(ex, level, { code: editorCode(ex), attempts: st.attempts, lastCheck: state.checkResults[ex.id] });
+          const h = await getHint(ex, level, { code: mentorCode(ex, st), attempts: st.attempts, lastCheck: state.checkResults[ex.id] });
           state.hintTexts[ex.id] = { ...(state.hintTexts[ex.id] || {}), [AI_LEVEL]: h.text };
-          store.updateExercise(ex.id, { hintsShown: Math.max(st.hintsShown || 0, AI_LEVEL), aiAsks: (st.aiAsks || 0) + 1 });
+          // Ліміт, бюджет, порожня відповідь, таймаут: рівень 4 не вважається показаним і
+          // звернення не рахується — учень зможе натиснути ще раз (текст усе одно видно).
+          if (!h.error) store.updateExercise(ex.id, { hintsShown: Math.max(st.hintsShown || 0, AI_LEVEL), aiAsks: (st.aiAsks || 0) + 1 });
         } finally { state.busy = false; }
         rerender(); break;
       }
-      const h = await getHint(ex, level, { code: editorCode(ex), attempts: st.attempts, lastCheck: state.checkResults[ex.id] });
+      const h = await getHint(ex, level, { code: mentorCode(ex, st), attempts: st.attempts, lastCheck: state.checkResults[ex.id] });
       state.hintTexts[ex.id] = { ...(state.hintTexts[ex.id] || {}), [level]: h.text };
       store.updateExercise(ex.id, { hintsShown: Math.max(st.hintsShown || 0, level) });
       rerender(); break;
     }
   }
+}
+
+/**
+ * Код, який бачить наставник. Для Parsons на сторінці немає textarea, тому editorCode повернув би
+ * стартовий код, а не відповідь учня — беремо зібрані блоки, як і перевірка (`check-parsons`).
+ */
+function mentorCode(ex, st) {
+  return ex.type === 'parsons' ? (st.parsons || []).join(' ') : editorCode(ex);
 }
 
 function editorCode(ex) {
