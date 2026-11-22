@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vmiko · прогін комісії ШІ-наставника</title>
+<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#1e2a24}button{font-size:18px;padding:12px 20px;border-radius:10px;border:0;background:#1f5f4a;color:#fff}#log{white-space:pre-wrap;background:#f6f3ec;padding:12px;border-radius:8px;font-size:14px;margin-top:16px;max-height:60vh;overflow:auto}.ok{color:#1f5f4a}.bad{color:#b00020}</style></head>
+<body>
+<h2>Прогін комісії ШІ-наставника</h2>
+<p>Натисни кнопку й не закривай сторінку, поки не з'явиться «ГОТОВО». Орієнтовно 5–7 хвилин. Екран може гаснути — це нормально, але краще не згортати вкладку.</p>
+<button id="go">Запустити 60 кейсів</button>
+<div id="log"></div>
+<script type="module">
+const SB='https://jbanpxtrahhjcihpmzyt.supabase.co', KEY='sb_publishable_jsG9DyW9_bpVY3nyJf7ymA_gYicnnJE';
+const log=(m,c='')=>{const d=document.getElementById('log');d.innerHTML+=`<div class="${c}">${m}</div>`;d.scrollTop=d.scrollHeight;};
+async function save(row){ const r=await fetch(SB+'/rest/v1/qa_mentor_runs',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'content-type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(row)}); if(!r.ok) log('  ⚠ не зберіглось: '+r.status,'bad'); }
+document.getElementById('go').onclick=async()=>{
+  const btn=document.getElementById('go'); btn.disabled=true;
+  const run_id='run-'+new Date().toISOString().slice(0,16).replace(/[-:T]/g,'')+'-'+Math.random().toString(36).slice(2,6);
+  log('run_id: '+run_id);
+  const corpus=await (await fetch('corpus.json?'+Date.now())).json();
+  let okc=0;
+  for(const c of corpus){
+    const t0=performance.now(); let row={run_id,case_id:c.id};
+    try{
+      const r=await fetch(SB+'/functions/v1/mentor',{method:'POST',headers:{'content-type':'application/json',apikey:KEY},body:JSON.stringify(c.req)});
+      let j={}; try{j=await r.json();}catch(e){j={parse_error:String(e)};}
+      row={...row,status:r.status,ms:Math.round(performance.now()-t0),text:j.text||'',error:j.error||j.parse_error||null,usage:j.usage||null};
+    }catch(e){ row={...row,status:0,ms:Math.round(performance.now()-t0),text:'',error:String(e)}; }
+    await save(row); okc++;
+    log(`${c.id} · ${row.status} · ${row.ms} мс · ${(row.text||row.error||'').slice(0,60)}…`, row.status===200?'ok':'bad');
+    await new Promise(r=>setTimeout(r,300));
+  }
+  log(`ГОТОВО: ${okc} з ${corpus.length}. Можеш закривати. Напиши Маяку «прогін ${run_id}».`,'ok');
+};
+</script></body></html>
