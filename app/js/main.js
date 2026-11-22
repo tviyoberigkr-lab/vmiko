@@ -6,7 +6,7 @@
 import { editorHtml, syncEditor, handleRunShortcut } from './editor.js';
 import { LocalStorageAdapter, MemoryAdapter, createProgressStore, describeSaveError } from './storage.js';
 import { createDb, ensureServiceWorker } from './db.js';
-import { hintAvailability, getHint, level3Source } from './mentor.js';
+import { hintAvailability, getHint, aiApplies, AI_LEVEL } from './mentor.js';
 import { explainPgError } from './checker.js';
 
 const $app = document.getElementById('app');
@@ -308,17 +308,28 @@ function hintsHtml(ex) {
   const av = hintAvailability(ex, st);
   const texts = state.hintTexts[ex.id] || {};
   const shownList = [];
-  for (let l = 1; l <= (st.hintsShown || 0); l++) {
-    const author3 = l === 3 && level3Source(ex) === 'author';
-    const t = l <= 2 || author3 ? (ex.hints || [])[l - 1] : (texts[3] || '…');
-    shownList.push(`<li class="hint lvl${l}"><b>Підказка ${l}${l === 3 ? (author3 ? ' (приклад)' : ' (ШІ-наставник)') : ''}:</b> ${md(t)}</li>`);
+  const maxShown = Math.min(st.hintsShown || 0, av.length);
+  for (let l = 1; l <= maxShown; l++) {
+    if (l === AI_LEVEL) {
+      // Рівень 4 — ШІ дивиться на код учня; текст не зберігаємо між сесіями, лише в пам'яті сторінки
+      const t = texts[AI_LEVEL];
+      if (!t) continue;
+      shownList.push(`<li class="hint lvl4"><b>Наставник (ШІ):</b> ${md(t)}</li>`);
+      continue;
+    }
+    const t = (ex.hints || [])[l - 1];
+    shownList.push(`<li class="hint lvl${l}"><b>Підказка ${l}${l === 3 ? ' (приклад)' : ''}:</b> ${md(t)}</li>`);
   }
   const nextLvl = av.find((h) => !h.shown);
   let btn = '';
   if (nextLvl) {
-    const l3 = level3Source(ex) === 'author' ? ': приклад' : ' від ШІ';
-    if (nextLvl.unlocked) btn = `<button class="btn link" data-act="hint" data-l="${nextLvl.level}" data-testid="hint">Підказка ${nextLvl.level}${nextLvl.level === 3 ? l3 : ''}</button>`;
-    else if (nextLvl.level === 3) btn = `<p class="muted">Підказка 3${level3Source(ex) === 'author' ? ' (приклад)' : ' (ШІ)'} відкриється після ${nextLvl.needAttempts} ${plural(nextLvl.needAttempts, 'спроби', 'спроб', 'спроб')} перевірки.</p>`;
+    if (nextLvl.ai) {
+      if (nextLvl.unlocked) btn = `<button class="btn link" data-act="hint" data-l="${AI_LEVEL}" data-testid="hint-ai">Запитати наставника (ШІ)</button>`;
+      else btn = `<p class="muted">Наставник (ШІ) подивиться на твій код після підказки 3 і ${nextLvl.needAttempts || 2} ${plural(nextLvl.needAttempts || 2, 'спроби', 'спроб', 'спроб')} перевірки.</p>`;
+    } else if (nextLvl.unlocked) btn = `<button class="btn link" data-act="hint" data-l="${nextLvl.level}" data-testid="hint">Підказка ${nextLvl.level}${nextLvl.level === 3 ? ': приклад' : ''}</button>`;
+    else if (nextLvl.level === 3) btn = `<p class="muted">Підказка 3 (приклад) відкриється після ${nextLvl.needAttempts} ${plural(nextLvl.needAttempts, 'спроби', 'спроб', 'спроб')} перевірки.</p>`;
+  } else if (texts[AI_LEVEL] && aiApplies(ex)) {
+    btn = `<button class="btn link" data-act="hint" data-l="${AI_LEVEL}" data-testid="hint-ai">Запитати наставника ще раз</button>`;
   }
   return `<section class="hints"><ol>${shownList.join('')}</ol>${btn}</section>`;
 }
@@ -371,6 +382,16 @@ async function onClick(e) {
     case 'p-clear': if (st.status !== 'passed') { store.updateExercise(ex.id, { parsons: [] }); delete state.checkResults[ex.id]; rerender(); } break;
     case 'hint': {
       const level = Number(b.dataset.l);
+      if (level === AI_LEVEL) {
+        if (state.busy) return;
+        state.busy = true; b.disabled = true; b.textContent = 'Наставник дивиться твій код…';
+        try {
+          const h = await getHint(ex, level, { code: editorCode(ex), attempts: st.attempts, lastCheck: state.checkResults[ex.id] });
+          state.hintTexts[ex.id] = { ...(state.hintTexts[ex.id] || {}), [AI_LEVEL]: h.text };
+          store.updateExercise(ex.id, { hintsShown: Math.max(st.hintsShown || 0, AI_LEVEL), aiAsks: (st.aiAsks || 0) + 1 });
+        } finally { state.busy = false; }
+        rerender(); break;
+      }
       const h = await getHint(ex, level, { code: editorCode(ex), attempts: st.attempts, lastCheck: state.checkResults[ex.id] });
       state.hintTexts[ex.id] = { ...(state.hintTexts[ex.id] || {}), [level]: h.text };
       store.updateExercise(ex.id, { hintsShown: Math.max(st.hintsShown || 0, level) });

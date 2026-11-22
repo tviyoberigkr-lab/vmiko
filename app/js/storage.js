@@ -114,7 +114,7 @@ function normalizeExercise(v) {
   if ('parsons' in out && !(Array.isArray(out.parsons) && out.parsons.every(isStr))) drop('parsons');
   if ('screen' in out && !(isNum(out.screen) && out.screen >= 0)) drop('screen');
   if ('revealed' in out && typeof out.revealed !== 'boolean') drop('revealed');
-  for (const f of ['attempts', 'hintsShown']) {
+  for (const f of ['attempts', 'hintsShown', 'aiAsks']) {
     if (!(f in out)) continue;
     if (!(isNum(out[f]) && out[f] >= 0)) { out[f] = 0; repaired = true; }
   }
@@ -177,6 +177,7 @@ function mergeExercise(a, b) {
   }
   out.attempts = Math.max(a.attempts || 0, b.attempts || 0);
   out.hintsShown = Math.max(a.hintsShown || 0, b.hintsShown || 0);
+  out.aiAsks = Math.max(a.aiAsks || 0, b.aiAsks || 0);
   if (a.startedAt || b.startedAt) out.startedAt = [a.startedAt, b.startedAt].filter(Boolean).sort()[0];
   return out;
 }

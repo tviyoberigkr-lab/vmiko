@@ -103,6 +103,7 @@ table.res th { position: sticky; top: 0; background: #f1eee6; font-weight: 700; 
 .hints ol { padding-left: 0; list-style: none; margin: 12px 0 0; }
 .hint { background: #fff6e0; border-left: 4px solid var(--accent); padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; }
 .hint.lvl3 { background: #eef1fb; border-left-color: #5866b3; }
+.hint.lvl4 { background: #e6f6ee; border-left-color: var(--brand); }
 .muted { color: var(--muted); font-size: .85rem; }
 .done { background: var(--ok-bg); border-radius: var(--r); padding: 16px; margin-top: 16px; }
 .done .ok { color: var(--ok); font-weight: 800; font-size: 1.1rem; margin: 0 0 8px; }
