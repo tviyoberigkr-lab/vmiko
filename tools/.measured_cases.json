@@ -1,0 +1,92 @@
+[
+ {
+  "id": "P01",
+  "exercise_id": "m1-d3-11",
+  "code_sql": "SELECT full_name, city FROM customers WHERE city IN ('Одеса', 'Харків', 'Дніпро') OR registered_at BETWEEN '2025-01-01' AND '2025-12-31'",
+  "ok": false,
+  "stage": "visible",
+  "check_code": "row_count",
+  "message": "Кількість рядків не та: потрібно 1561, у тебе 9615.",
+  "error": ""
+ },
+ {
+  "id": "P02",
+  "exercise_id": "m1-d3-11",
+  "code_sql": "SELECT full_name, city FROM customers WHERE city IN ('Одеса', 'Харків', 'Дніпро') AND registered_at BETWEEN '2025-12-31' AND '2025-01-01'",
+  "ok": false,
+  "stage": "visible",
+  "check_code": "row_count",
+  "message": "Кількість рядків не та: потрібно 1561, у тебе 0.",
+  "error": ""
+ },
+ {
+  "id": "P03",
+  "exercise_id": "m1-d3-11",
+  "code_sql": "FROM customers SELECT full_name, city WHERE city IN ('Одеса', 'Харків', 'Дніпро') AND registered_at BETWEEN '2025-01-01' AND '2025-12-31'",
+  "ok": false,
+  "stage": "run",
+  "check_code": null,
+  "message": "Запит не виконався.",
+  "error": "syntax error at or near \"FROM\""
+ },
+ {
+  "id": "P04",
+  "exercise_id": "m1-d4-09",
+  "code_sql": "SELECT product_name, price_uah FROM products WHERE category = 'Кабелі та адаптери' ORDER BY price_uah DESC LIMIT 10",
+  "ok": false,
+  "stage": "visible",
+  "check_code": "values",
+  "message": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "error": ""
+ },
+ {
+  "id": "P05",
+  "exercise_id": "m1-d1-06",
+  "code_sql": "SELECT product_name, price_uah FROM orders LIMIT 5",
+  "ok": false,
+  "stage": "run",
+  "check_code": null,
+  "message": "Запит не виконався.",
+  "error": "column \"product_name\" does not exist"
+ },
+ {
+  "id": "C01",
+  "exercise_id": "m1-d10-08",
+  "code_sql": "SELECT delivery_method, COUNT(*) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method",
+  "ok": false,
+  "stage": "visible",
+  "check_code": "columns_count",
+  "message": "Кількість колонок не та: потрібно 3, у тебе 2.",
+  "error": ""
+ },
+ {
+  "id": "C02",
+  "exercise_id": "m1-d10-08",
+  "code_sql": "SELECT delivery_method, COUNT(*), AVG(total_uah), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method",
+  "ok": false,
+  "stage": "visible",
+  "check_code": "columns_count",
+  "message": "Кількість колонок не та: потрібно 3, у тебе 4.",
+  "error": ""
+ },
+ {
+  "id": "X01-крок1",
+  "exercise_id": "m1-d10-08",
+  "code_sql": "SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method",
+  "ok": false,
+  "stage": "visible",
+  "check_code": "values",
+  "message": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "error": ""
+ },
+ {
+  "id": "X01-крок2",
+  "exercise_id": "m1-d10-08",
+  "code_sql": "SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_metod",
+  "ok": false,
+  "stage": "run",
+  "check_code": null,
+  "message": "Запит не виконався.",
+  "error": "column \"delivery_metod\" does not exist"
+ }
+]

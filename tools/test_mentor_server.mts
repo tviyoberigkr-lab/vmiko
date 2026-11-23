@@ -33,6 +33,7 @@ fs.writeFileSync(OUT, src);
 const db = await PGlite.create();
 await db.exec('create role anon; create role authenticated; create role service_role;');
 await db.exec(fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261122_mentor_budget.sql'), 'utf8'));
+await db.exec(fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261123_mentor_usage_rollup.sql'), 'utf8'));
 
 let dbDown = false;
 const rpc = async (fn: string, a: any) => {
@@ -222,6 +223,41 @@ check('Cloudflare недосяжний → учня пропущено (turnstil
 siteverifyDown = false;
 r = await post(base({ captcha: 'unavailable' })); j = await r.json();
 check('віджет не завантажився у клієнта → пропущено', r.status === 200);
+
+
+// ---------------------------------------------------------------- згортка mentor_usage (п.26)
+// Перевіряємо не «функція не падає», а що саме вона робить із цифрами: старі рядки зникають
+// із детальної таблиці, але їхні підсумки лишаються в архіві, а свіжі рядки не чіпаються.
+{
+  await db.exec(`delete from mentor_usage; delete from mentor_usage_archive;`);
+  const old = `(now() at time zone 'utc')::date - 40`;
+  const fresh = `(now() at time zone 'utc')::date - 3`;
+  await db.exec(`
+    insert into mentor_usage (device_id, day, calls, input_tokens, output_tokens) values
+      ('dev-a',  ${old},   5, 1000, 200),
+      ('dev-b',  ${old},   3,  600, 120),
+      ('ip:beef',${old},   8,    0,   0),
+      ('dev-c',  ${fresh}, 7, 1400, 300);
+  `);
+  const removed = (await db.query<{ mentor_usage_rollup: number }>(`select mentor_usage_rollup(30)`)).rows[0].mentor_usage_rollup;
+  check('згортка видалила лише рядки старші за 30 діб', removed === 3, `видалено ${removed}`);
+
+  const left = (await db.query<{ device_id: string }>(`select device_id from mentor_usage order by device_id`)).rows;
+  check('свіжий рядок лишився недоторканим', left.length === 1 && left[0].device_id === 'dev-c');
+
+  const a = (await db.query<{ devices: number; calls: string; input_tokens: string; output_tokens: string }>(
+    `select devices, calls, input_tokens, output_tokens from mentor_usage_archive`)).rows;
+  check('архів має рівно одну добу', a.length === 1, `діб: ${a.length}`);
+  // пристроїв 2 (dev-a, dev-b) — рядок 'ip:beef' не пристрій; звернень 8 = 5+3 без 'ip:'
+  check('архів рахує пристрої без рядків ip:', a[0] && a[0].devices === 2, JSON.stringify(a[0]));
+  check('архів рахує звернення без подвоєння ip:', a[0] && Number(a[0].calls) === 8, JSON.stringify(a[0]));
+  check('архів зберіг токени', a[0] && Number(a[0].input_tokens) === 1600 && Number(a[0].output_tokens) === 320, JSON.stringify(a[0]));
+
+  // повторний запуск не має ні падати, ні псувати вже збережену добу
+  const again = (await db.query<{ mentor_usage_rollup: number }>(`select mentor_usage_rollup(30)`)).rows[0].mentor_usage_rollup;
+  const a2 = (await db.query<{ n: string }>(`select count(*) n from mentor_usage_archive`)).rows[0];
+  check('повторна згортка безпечна', again === 0 && Number(a2.n) === 1, `видалено ${again}, діб ${a2.n}`);
+}
 
 console.log(`\nУсього: ${passed} ok, ${failed} FAIL`);
 await db.close();
