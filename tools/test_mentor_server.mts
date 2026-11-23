@@ -53,6 +53,7 @@ const rpc = async (fn: string, a: any) => {
 
 // --- підміна fetch: Anthropic і Cloudflare
 let anthropicReply: any = null;
+let anthropicCalls = 0;
 let lastPrompt = '';
 let lastPayload: any = null;
 let siteverifyOk = true, siteverifyCalls = 0, siteverifyDown = false;
@@ -62,6 +63,12 @@ globalThis.fetch = (async (url: any, opts: any) => {
   if (u.includes('api.anthropic.com')) {
     lastPayload = JSON.parse(opts.body);
     lastPrompt = lastPayload.messages[0].content;
+    anthropicCalls++;
+    // Масив = черга відповідей: перша на перший виклик, друга на повтор запобіжника.
+    if (Array.isArray(anthropicReply)) {
+      const next = anthropicReply.shift();
+      return new Response(JSON.stringify(next), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
     if (anthropicReply === 'abort') { const e: any = new Error('aborted'); e.name = 'AbortError'; throw e; }
     if (anthropicReply === '400effort') return new Response(JSON.stringify({ error: { message: 'output_config: unexpected field' } }), { status: 400 });
     return new Response(JSON.stringify(anthropicReply), { status: 200, headers: { 'content-type': 'application/json' } });
@@ -257,6 +264,79 @@ check('віджет не завантажився у клієнта → проп
   const again = (await db.query<{ mentor_usage_rollup: number }>(`select mentor_usage_rollup(30)`)).rows[0].mentor_usage_rollup;
   const a2 = (await db.query<{ n: string }>(`select count(*) n from mentor_usage_archive`)).rows[0];
   check('повторна згортка безпечна', again === 0 && Number(a2.n) === 1, `видалено ${again}, діб ${a2.n}`);
+}
+
+
+// ---------------------------------------------------------------- запобіжник від витоку назв
+console.log('\n[З] Запобіжник: назва зі схеми, якої немає в коді учня');
+{
+  // Блок стоїть після перевірок капчі, тож вона ввімкнена — даємо кожному запиту токен.
+  siteverifyOk = true; siteverifyDown = false;
+  const studentCode = 'SELECT product_name, price_uah FROM orders LIMIT 10';
+
+  // 1. Чисто: модель назвала лише те, що вже є в коді учня — повтору бути не повинно.
+  anthropicCalls = 0;
+  anthropicReply = text('У твоєму запиті після FROM стоїть orders, а назви товарів живуть в іншій таблиці. Де саме їх шукати за схемою?');
+  let g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-clean-001' }));
+  let gj: any = await g.json();
+  check('назва з коду учня (orders) не вважається витоком', g.status === 200 && gj.retried === false, JSON.stringify({ s: g.status, r: gj.retried }));
+  check('без витоку модель викликано рівно раз', anthropicCalls === 1, 'викликів ' + anthropicCalls);
+
+  // 2. Витік: названо products, якого в коді учня немає. Повтор має виправити.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Назви товарів лежать у таблиці products, а ти читаєш orders. Яку таблицю взяти?'),
+    text('Ти читаєш таблицю із замовленнями, а потрібні назви товарів. Подивись у схемі, де вони живуть. Яку таблицю поставити у FROM?'),
+  ];
+  g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-retry-001' }));
+  gj = await g.json();
+  check('витік спричинив повтор', gj.retried === true, JSON.stringify(gj).slice(0, 160));
+  check('повтор зроблено одним додатковим викликом', anthropicCalls === 2, 'викликів ' + anthropicCalls);
+  check('у підсумковій відповіді витоку немає', !/products/.test(gj.text), gj.text);
+  check('підказку не підмінено заглушкою', gj.guarded === false && /FROM/.test(gj.text), JSON.stringify(gj).slice(0, 160));
+
+  // 3. Витік і після повтору — показуємо нейтральний текст, а не відповідь.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Назви товарів лежать у таблиці products. Яку таблицю взяти?'),
+    text('Я ж кажу: це products. Яку таблицю взяти?'),
+  ];
+  g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-fallback-1' }));
+  gj = await g.json();
+  check('повторний витік → guarded', gj.guarded === true, JSON.stringify(gj).slice(0, 160));
+  check('назви у відповіді немає', !/products/.test(gj.text), gj.text);
+  check('нейтральний текст усе одно веде далі (є запитання)', /\?\s*$/.test(gj.text.trim()), gj.text);
+
+  // 4. Регістр має значення: учень написав "Order_ID", схема має order_id — це витік.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('У таблиці ідентифікатор називається order_id, маленькими літерами. Як це записати?'),
+    text('Подвійні лапки роблять назву чутливою до регістру, тому написання має збігтися зі схемою точно. Як записати назву, щоб збіг був точним?'),
+  ];
+  g = await post(base({ captcha_token: 'ok', code: 'SELECT "Order_ID", order_date FROM orders LIMIT 20', device_id: 'guard-case-0001' }));
+  gj = await g.json();
+  check('order_id при "Order_ID" у коді — витік', gj.retried === true, JSON.stringify(gj).slice(0, 160));
+  check('order_date з коду учня витоком не вважається', !/order_date.*витік/.test(JSON.stringify(gj)));
+
+  // 5. Назва, яку вже назвала сама база в помилці, витоком не є.
+  anthropicCalls = 0;
+  anthropicReply = text('База каже, що customers не знайдено через зайву літеру. Що саме відрізняється?');
+  g = await post(base({ captcha_token: 'ok', code: 'SELECT * FROM customerss', lastError: 'relation "customers" does not exist', device_id: 'guard-fromerr-01' }));
+  gj = await g.json();
+  check('назва з повідомлення бази витоком не є', gj.retried === false, JSON.stringify(gj).slice(0, 160));
+
+  // 6. Задовга відповідь — повтор, але не підміна.
+  anthropicCalls = 0;
+  const longText = 'слово '.repeat(130).trim() + '?';
+  anthropicReply = [text(longText), text('Коротка підказка про те, де шукати. Що в запиті не збігається з умовою?')];
+  g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-toolong-01' }));
+  gj = await g.json();
+  check('задовга відповідь спричинила повтор', gj.retried === true && anthropicCalls === 2, JSON.stringify({ r: gj.retried, c: anthropicCalls }));
+  check('після повтору взято коротку відповідь', gj.text.split(/\s+/).length <= 100, String(gj.text.split(/\s+/).length));
+
+  // 7. Обидва виклики оплачено: токени списано двічі.
+  const u = await calls('guard-toolong-01');
+  check('токени другого виклику теж обліковано', Number(u.input_tokens) === 2600, JSON.stringify(u));
 }
 
 console.log(`\nУсього: ${passed} ok, ${failed} FAIL`);

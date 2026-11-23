@@ -193,6 +193,44 @@ const KIND: Record<string, string> = {
   row_count: "ТИП ПЕРЕВІРКИ: не та кількість рядків — імовірно логіка (умова, JOIN, межі, групування).",
   values: "ТИП ПЕРЕВІРКИ: кількість рядків та сама, значення інші. Сам визнач: логіка чи формат (округлення, тип, формат дати, напрям сортування).",
 };
+// ---------------------------------------------------------------- запобіжник від витоку назв
+
+// Прогони 1 і 2 (23.11.2026) показали, що в кейсах, де правильна відповідь — ОДНЕ СЛОВО
+// (назва таблиці чи колонки), модель витримує заборону приблизно у 8 випадках із 10 і зривається
+// щоразу в іншому кейсі. Умовляння в промпті цього не лікують: правки прибрали шість дефектів
+// і зламали два кейси, які були чисті. Тому перевіряємо арифметикою, а не довірою.
+//
+// Правило те саме, що словами в SYSTEM: назва зі схеми, якої НЕМАЄ ні в коді учня, ні в помилці
+// бази, ні в тексті задачі, — це відповідь, і її у підказці бути не може. Якщо така назва
+// знайшлася, один раз просимо переписати; якщо й тоді вона є — показуємо нейтральний текст.
+const SCHEMA_NAMES = [
+  "customers", "products", "promo_codes", "orders", "order_items", "returns",
+  "customer_id", "full_name", "city", "registered_at", "acquisition_channel",
+  "product_id", "product_name", "category", "brand", "price_uah", "cost_uah",
+  "promo_code_id", "discount_pct", "valid_from", "valid_to",
+  "order_id", "order_date", "created_at", "status", "delivery_method", "delivery_date",
+  "discount_uah", "total_uah",
+  "order_item_id", "quantity", "unit_price_uah",
+  "return_id", "return_date", "reason", "refund_uah",
+];
+// Стеля обсягу для запобіжника. SYSTEM просить 90 слів, рубрика рахує провалом понад 100 —
+// тут 100, щоб повтор не замовлявся через одне-два зайвих слова.
+const MAX_WORDS = 100;
+
+/** Чи зустрічається назва як окреме слово (а не всередині іншої назви). Регістр має значення:
+ *  учень написав "Order_ID", схема має order_id — це різні рядки, і друге буде витоком. */
+const hasName = (hay: string, name: string) =>
+  new RegExp(`(?<![A-Za-z0-9_])${name}(?![A-Za-z0-9_])`).test(hay);
+
+/** Назви зі схеми, що є у відповіді й відсутні в дозволеному тексті. */
+function leakedNames(answer: string, allowed: string) {
+  return SCHEMA_NAMES.filter((n) => hasName(answer, n) && !hasName(allowed, n));
+}
+
+const countWords = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+
+const GUARD_TEXT = "Тут я мало не підказав відповідь, тому зупинюся на пів кроку. Відкрий схему бази й звір назви таблиць і колонок із тим, що написано у твоєму запиті: помилка саме в цьому місці. Яка назва у твоєму запиті не збігається зі схемою?";
+
 const STAGE_HIDDEN = "Перевірку на видимих даних пройдено, на перевірочних — ні: шукай незагальну умову або порядок, а не «підгонку».";
 
 const SYSTEM = `Ти — наставник з SQL у навчальному застосунку Vmiko. Учень — доросла людина, вчиться дата-аналітики на датасеті інтернет-магазину «Кошик» (Postgres). Ти — четверта сходинка підказок: учень уже бачив три авторські підказки, зокрема приклад на іншій таблиці, і зробив щонайменше дві спроби.
@@ -256,13 +294,15 @@ const CAPTCHA_BAD_TEXT = "Перевірка не вдалася. Спробуй
 // і далі працюємо без цього поля. Перевірку живим curl має зробити власник (див. звіт).
 let effortSupported = true;
 
-async function askAnthropic(apiKey: string, user: string, signal: AbortSignal) {
+type Msg = { role: "user" | "assistant"; content: string };
+
+async function askAnthropic(apiKey: string, messages: Msg[], signal: AbortSignal) {
   const payload = (withEffort: boolean) => JSON.stringify({
     model: MODEL,
     max_tokens: MAX_OUTPUT_TOKENS,
     ...(withEffort ? { output_config: { effort: EFFORT } } : {}),
     system: SYSTEM,
-    messages: [{ role: "user", content: user }],
+    messages,
   });
   const send = (withEffort: boolean) => fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -426,7 +466,7 @@ ${code}
     const t0 = Date.now();
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), UPSTREAM_TIMEOUT_MS);
-    const call = await askAnthropic(apiKey, user, ctrl.signal)
+    const call = await askAnthropic(apiKey, [{ role: "user", content: user }], ctrl.signal)
       .catch((e: unknown) => ({ err: e as Error }));
     clearTimeout(timer);
     if ("err" in call) {
@@ -473,10 +513,59 @@ ${code}
       return json({ error: "empty", text: EMPTY_TEXT, stop_reason: stop, content_types: types, usage: { input_tokens: inTok, output_tokens: outTok } }, 502);
     }
 
+    // --- запобіжник: чи не назвав наставник саме те, що й було відповіддю.
+    // Дозволене — усе, що учень уже бачив: його власний код, повідомлення бази, умова задачі.
+    // Назва, якої немає в жодному з них, у підказці бути не може.
+    const allowed = `${code}\n${lastError}\n${title}\n${prompt}`;
+    let leaked = leakedNames(text, allowed);
+    let retried = false;
+    let guarded = false;
+
+    if (leaked.length || countWords(text) > MAX_WORDS) {
+      retried = true;
+      const fix = [
+        leaked.length
+          ? `У попередній відповіді ти назвав ${leaked.join(", ")}. Цих назв немає ні в коді учня, ні в помилці бази, ні в умові задачі — отже ти видав відповідь. Перепиши підказку повністю без жодної з них: опиши потрібне за змістом, не вимовляючи назви.`
+          : "",
+        countWords(text) > MAX_WORDS ? "Відповідь задовга: перепиши не більше ніж у 90 слів." : "",
+      ].filter(Boolean).join(" ");
+
+      const ctrl2 = new AbortController();
+      const timer2 = setTimeout(() => ctrl2.abort(), UPSTREAM_TIMEOUT_MS);
+      const call2 = await askAnthropic(apiKey, [
+        { role: "user", content: user },
+        { role: "assistant", content: text },
+        { role: "user", content: fix },
+      ], ctrl2.signal).catch((e: unknown) => ({ err: e as Error }));
+      clearTimeout(timer2);
+
+      if (!("err" in call2) && call2.r.ok) {
+        const d2 = await call2.r.json();
+        const b2 = (d2.content ?? []) as { type: string; text?: string }[];
+        const in2 = Number(d2.usage?.input_tokens) || 0;
+        const out2 = Number(d2.usage?.output_tokens) || 0;
+        await bookTokens(in2, out2);   // другий виклик теж коштує грошей — рахуємо його
+        let t2 = b2.filter((b) => b.type === "text").map((b) => b.text ?? "").join("\n").trim();
+        if (String(d2.stop_reason ?? "") === "max_tokens" && t2) {
+          const c2 = toLastSentence(t2);
+          if (c2.length >= 40) { t2 = c2; truncated = true; } else { t2 = ""; }
+        }
+        if (t2) { text = t2; truncated = truncated && t2.length > 0; leaked = leakedNames(text, allowed); }
+      } else {
+        console.error("mentor: повтор запобіжника не вдався, лишаємося з першою відповіддю");
+      }
+
+      // Не впоралася і вдруге — краще нейтральний текст, ніж підказка з готовою відповіддю.
+      if (leaked.length) { text = GUARD_TEXT; guarded = true; truncated = false; }
+      console.log(`mentor guard: retried=1 guarded=${guarded ? 1 : 0} names=${leaked.join("|") || "-"} dev=${devHash}`);
+    }
+
     return json({
       text,
       model: MODEL,
       truncated,
+      retried,
+      guarded,
       stop_reason: stop,
       content_types: types,
       usage: { input_tokens: inTok, output_tokens: outTok },
