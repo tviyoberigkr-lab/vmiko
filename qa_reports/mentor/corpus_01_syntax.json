@@ -1,276 +1,281 @@
 [
-  {
-    "id": "S01",
-    "exercise_id": "m1-d1-05",
-    "attempts": 2,
-    "code": "SELECT order_id, order_date, total_uah, FROM orders LIMIT 20",
-    "lastError": "syntax error at or near \"FROM\"",
-    "lastCheckMessage": "",
-    "category": "зайва кома перед FROM",
-    "expected": "Вказати на кому після total_uah перед FROM: після останньої колонки коми не буває. Розшифрувати «syntax error at or near FROM».",
-    "must_not_contain": [
-      "SELECT order_id, order_date, total_uah FROM orders LIMIT 20"
-    ]
-  },
-  {
-    "id": "S02",
-    "exercise_id": "m1-d2-02",
-    "attempts": 2,
-    "code": "SELECT * FROM customers WHERE city = Львів",
-    "lastError": "column \"Львів\" does not exist",
-    "lastCheckMessage": "",
-    "category": "рядок без лапок",
-    "expected": "Пояснити: Львів без лапок база читає як ім'я колонки; текстові значення беруться в одинарні лапки. Не писати готове умову city = 'Львів' повністю.",
-    "must_not_contain": [
-      "city = 'Львів'",
-      "WHERE city = 'Львів'"
-    ]
-  },
-  {
-    "id": "S03",
-    "exercise_id": "m1-d2-04",
-    "attempts": 2,
-    "code": "SELECT order_id, order_date, total_uah FROM orders WHERE total_uah > 5000 AND status = \"delivered\"",
-    "lastError": "column \"delivered\" does not exist",
-    "lastCheckMessage": "",
-    "category": "подвійні лапки замість одинарних",
-    "expected": "Пояснити різницю: подвійні лапки — ідентифікатор (колонка), одинарні — текст. Вказати на \"delivered\". Не підставляти готове status = 'delivered'.",
-    "must_not_contain": [
-      "status = 'delivered'"
-    ]
-  },
-  {
-    "id": "S04",
-    "exercise_id": "m1-d1-08",
-    "attempts": 2,
-    "code": "SELECT * FROM customers LIMIТ 5",
-    "lastError": "syntax error at or near \"5\"",
-    "lastCheckMessage": "",
-    "category": "кирилична літера в ключовому слові (Т у LIMIT)",
-    "expected": "Помітити, що помилка на «5» через те, що LIMIТ сприйнявся як псевдонім; натякнути на схожу кирилічну літеру в слові LIMIT (перепечатати слово латиницею). Не давати готовий запит.",
-    "must_not_contain": [
-      "LIMIT 5",
-      "SELECT * FROM customers LIMIT 5"
-    ]
-  },
-  {
-    "id": "S05",
-    "exercise_id": "m1-d2-04",
-    "attempts": 2,
-    "code": "SELECT order_id, order_date, total_uah FROM orders WHERE total_uah > 5000 АND status = 'delivered'",
-    "lastError": "syntax error at or near \"АND\"",
-    "lastCheckMessage": "",
-    "category": "кирилична А в AND",
-    "expected": "Вказати, що слово AND виглядає правильно, але перша літера, ймовірно, кирилична; порадити перенабрати слово латиницею. Не переписувати умову готовою.",
-    "must_not_contain": [
-      "AND status = 'delivered'",
-      "WHERE total_uah > 5000 AND status = 'delivered'"
-    ]
-  },
-  {
-    "id": "S06",
-    "exercise_id": "m1-d5-02",
-    "attempts": 2,
-    "code": "SELECT product_name, price_uah, cost_uah, price_uah - cost_uha AS margin_uah FROM products",
-    "lastError": "column \"cost_uha\" does not exist",
-    "lastCheckMessage": "",
-    "category": "друкарська помилка в назві колонки",
-    "expected": "Вказати, що в виразі маржі є назва, якої немає в products (cost_uha), порівняти з колонками таблиці; зауважити, що база навіть підказує схожу назву. Не писати повний вираз.",
-    "must_not_contain": [
-      "price_uah - cost_uah AS margin_uah",
-      "price_uah - cost_uah"
-    ]
-  },
-  {
-    "id": "S07",
-    "exercise_id": "m1-d1-05",
-    "attempts": 2,
-    "code": "SELECT \"Order_ID\", order_date, total_uah FROM orders LIMIT 20",
-    "lastError": "column \"Order_ID\" does not exist",
-    "lastCheckMessage": "",
-    "category": "регістр у лапках",
-    "expected": "Пояснити: у подвійних лапках регістр має значення, колонка в базі пишеться малими літерами; лапки тут не потрібні. Не давати готовий SELECT.",
-    "must_not_contain": [
-      "SELECT order_id, order_date, total_uah FROM orders LIMIT 20",
-      "order_id, order_date, total_uah"
-    ]
-  },
-  {
-    "id": "S08",
-    "exercise_id": "m1-d1-08",
-    "attempts": 2,
-    "code": "SELECT * FROM customer LIMIT 5",
-    "lastError": "relation \"customer\" does not exist",
-    "lastCheckMessage": "",
-    "category": "relation does not exist (однина)",
-    "expected": "Вказати на назву таблиці після FROM, порадити звірити з переліком таблиць (customers). Можна не називати правильну назву прямо, а попросити порівняти зі схемою.",
-    "must_not_contain": [
-      "FROM customers",
-      "SELECT * FROM customers LIMIT 5"
-    ]
-  },
-  {
-    "id": "S09",
-    "exercise_id": "m1-d7-02",
-    "attempts": 2,
-    "code": "SELECT COUNT(*) FROM order",
-    "lastError": "syntax error at or near \"order\"",
-    "lastCheckMessage": "",
-    "category": "зарезервоване слово як назва таблиці (order)",
-    "expected": "Пояснити, що ORDER — службове слово (ORDER BY), тому база плутається; назва таблиці в схемі інша (у множині). Не давати готовий запит.",
-    "must_not_contain": [
-      "FROM orders",
-      "SELECT COUNT(*) FROM orders"
-    ]
-  },
-  {
-    "id": "S10",
-    "exercise_id": "m1-d8-03",
-    "attempts": 2,
-    "code": "SELECT city, COUNT(*) FROM customers",
-    "lastError": "column \"customers.city\" must appear in the GROUP BY clause or be used in an aggregate function",
-    "lastCheckMessage": "",
-    "category": "GROUP BY без колонки",
-    "expected": "Пояснити правило: колонка поруч з агрегатом має бути у GROUP BY; вказати на city. Можна навести приклад на іншій таблиці. Не писати GROUP BY city повністю.",
-    "must_not_contain": [
-      "GROUP BY city",
-      "SELECT city, COUNT(*) FROM customers GROUP BY city"
-    ]
-  },
-  {
-    "id": "S11",
-    "exercise_id": "m1-d8-07",
-    "attempts": 2,
-    "code": "SELECT acquisition_channel, AVG(total_uah) FROM orders o JOIN customers c ON customer_id = customer_id GROUP BY acquisition_channel",
-    "lastError": "column reference \"customer_id\" is ambiguous",
-    "lastCheckMessage": "",
-    "category": "неоднозначна колонка в JOIN",
-    "expected": "Пояснити: customer_id є в обох таблицях, потрібно вказати, з якої саме (через псевдонім таблиці). Вказати на умову ON. Не писати готову умову ON.",
-    "must_not_contain": [
-      "c.customer_id = o.customer_id",
-      "o.customer_id = c.customer_id",
-      "ON c.customer_id"
-    ]
-  },
-  {
-    "id": "S12",
-    "exercise_id": "m1-d10-04",
-    "attempts": 2,
-    "code": "SELECT category, COUNT(*) FROM products WHERE COUNT(*) > 18 GROUP BY category",
-    "lastError": "aggregate functions are not allowed in WHERE",
-    "lastCheckMessage": "",
-    "category": "агрегат у WHERE",
-    "expected": "Пояснити: WHERE фільтрує рядки до групування, агрегатів ще не існує; умова на групи — в іншому розділі запиту, що йде після GROUP BY. Назвати HAVING можна лише як напрям, без готового запиту.",
-    "must_not_contain": [
-      "HAVING COUNT(*) > 18",
-      "GROUP BY category HAVING"
-    ]
-  },
-  {
-    "id": "S13",
-    "exercise_id": "m1-d11-03",
-    "attempts": 2,
-    "code": "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products WHERE margin_uah > 2000",
-    "lastError": "column \"margin_uah\" does not exist",
-    "lastCheckMessage": "",
-    "category": "псевдонім у WHERE",
-    "expected": "Пояснити порядок виконання: WHERE виконується до SELECT, псевдонім ще не існує; треба повторити вираз. Не писати готове WHERE.",
-    "must_not_contain": [
-      "WHERE price_uah - cost_uah > 2000"
-    ]
-  },
-  {
-    "id": "S14",
-    "exercise_id": "m1-d5-05",
-    "attempts": 2,
-    "code": "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah)::numeric / (SELECT COUNT(*) FROM orders WHERE status = 'refunded') AS margin_share FROM products",
-    "lastError": "division by zero",
-    "lastCheckMessage": "",
-    "category": "ділення на нуль",
-    "expected": "Розшифрувати division by zero: знаменник дорівнює нулю (підзапит нічого не знайшов за статусом, якого немає в даних). Зазначити, що в задачі ділити треба на ціну, а не на кількість замовлень. Не давати готовий вираз.",
-    "must_not_contain": [
-      "/ price_uah",
-      "::numeric / price_uah",
-      "(price_uah - cost_uah)::numeric / price_uah"
-    ]
-  },
-  {
-    "id": "S15",
-    "exercise_id": "m1-d2-10",
-    "attempts": 2,
-    "code": "SELECT * FROM customers WHERE acquisition_channel = 'telegram' AND registered_at >= '2026-13-01'",
-    "lastError": "date/time field value out of range: \"2026-13-01\"",
-    "lastCheckMessage": "",
-    "category": "неправильна дата (місяць 13)",
-    "expected": "Пояснити: формат РРРР-ММ-ДД, місяця 13 не існує; вказати на літерал дати. Не підставляти готову дату.",
-    "must_not_contain": [
-      "'2026-01-01'",
-      "registered_at >= '2026-01-01'"
-    ]
-  },
-  {
-    "id": "S16",
-    "exercise_id": "m1-d4-02",
-    "attempts": 2,
-    "code": "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah DESC LIMIT '10 шт'",
-    "lastError": "invalid input syntax for type bigint: \"10 шт\"",
-    "lastCheckMessage": "",
-    "category": "LIMIT як рядок з текстом",
-    "expected": "Пояснити: LIMIT очікує просте число, без лапок і слів. Не писати LIMIT 10.",
-    "must_not_contain": [
-      "LIMIT 10"
-    ]
-  },
-  {
-    "id": "S17",
-    "exercise_id": "m1-d7-04",
-    "attempts": 2,
-    "code": "/* виручка за 2025 рік\nSELECT SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'",
-    "lastError": "unterminated /* comment at or near \"/* виручка за 2025 рік\nSELECT SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'\"",
-    "lastCheckMessage": "",
-    "category": "незакритий багаторядковий коментар",
-    "expected": "Пояснити: коментар, що починається з /*, треба закрити; усе після нього база вважає коментарем. Вказати на перший рядок. Не переписувати запит.",
-    "must_not_contain": [
-      "*/"
-    ]
-  },
-  {
-    "id": "S18",
-    "exercise_id": "m1-d1-08",
-    "attempts": 2,
-    "code": "SELECT * FROM customers LIMIT 5; SELECT * FROM orders LIMIT 5;",
-    "lastError": "cannot insert multiple commands into a prepared statement",
-    "lastCheckMessage": "",
-    "category": "два запити через крапку з комою",
-    "expected": "Пояснити: застосунок виконує один запит за раз; другий треба запускати окремо. Не давати переписаний запит.",
-    "must_not_contain": []
-  },
-  {
-    "id": "S19",
-    "exercise_id": "m1-d4-02",
-    "attempts": 2,
-    "code": "SELECT product_name, brand, price_uah FROM products LIMIT 10 ORDER BY price_uah DESC",
-    "lastError": "syntax error at or near \"ORDER\"",
-    "lastCheckMessage": "",
-    "category": "порядок розділів: LIMIT перед ORDER BY",
-    "expected": "Пояснити порядок розділів запиту: LIMIT завжди останній. Вказати на місце ORDER BY. Не давати повний запит.",
-    "must_not_contain": [
-      "ORDER BY price_uah DESC LIMIT 10",
-      "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah DESC LIMIT 10"
-    ]
-  },
-  {
-    "id": "S20",
-    "exercise_id": "m1-d2-02",
-    "attempts": 2,
-    "code": "SELECT * FROM customers WHERE city = 'Львів",
-    "lastError": "unterminated quoted string at or near \"'Львів\"",
-    "lastCheckMessage": "",
-    "category": "незакритий рядок (немає закривальної лапки)",
-    "expected": "Вказати, що рядок відкрито одинарною лапкою, але не закрито. Не давати готовий запит.",
-    "must_not_contain": [
-      "city = 'Львів'",
-      "WHERE city = 'Львів'"
-    ]
-  }
+ {
+  "id": "S01",
+  "exercise_id": "m1-d1-05",
+  "attempts": 2,
+  "code": "SELECT order_id, order_date, total_uah, FROM orders LIMIT 20",
+  "lastError": "syntax error at or near \"FROM\"",
+  "lastCheckMessage": "",
+  "category": "зайва кома перед FROM",
+  "expected": "Вказати на кому після total_uah перед FROM: після останньої колонки коми не буває. Розшифрувати «syntax error at or near FROM».",
+  "must_not_contain": [
+   "SELECT order_id, order_date, total_uah FROM orders LIMIT 20"
+  ]
+ },
+ {
+  "id": "S02",
+  "exercise_id": "m1-d2-02",
+  "attempts": 2,
+  "code": "SELECT * FROM customers WHERE city = Львів",
+  "lastError": "column \"Львів\" does not exist",
+  "lastCheckMessage": "",
+  "category": "рядок без лапок",
+  "expected": "Пояснити: Львів без лапок база читає як ім'я колонки; текстові значення беруться в одинарні лапки. Не писати готове умову city = 'Львів' повністю.",
+  "must_not_contain": [
+   "city = 'Львів'",
+   "WHERE city = 'Львів'"
+  ]
+ },
+ {
+  "id": "S03",
+  "exercise_id": "m1-d2-04",
+  "attempts": 2,
+  "code": "SELECT order_id, order_date, total_uah FROM orders WHERE total_uah > 5000 AND status = \"delivered\"",
+  "lastError": "column \"delivered\" does not exist",
+  "lastCheckMessage": "",
+  "category": "подвійні лапки замість одинарних",
+  "expected": "Пояснити різницю: подвійні лапки — ідентифікатор (колонка), одинарні — текст. Вказати на \"delivered\". Не підставляти готове status = 'delivered'.",
+  "must_not_contain": [
+   "status = 'delivered'"
+  ]
+ },
+ {
+  "id": "S04",
+  "exercise_id": "m1-d1-08",
+  "attempts": 2,
+  "code": "SELECT * FROM customers LIMIТ 5",
+  "lastError": "syntax error at or near \"5\"",
+  "lastCheckMessage": "",
+  "category": "кирилична літера в ключовому слові (Т у LIMIT)",
+  "expected": "Помітити, що помилка на «5» через те, що LIMIТ сприйнявся як псевдонім; натякнути на схожу кирилічну літеру в слові LIMIT (перепечатати слово латиницею). Не давати готовий запит.",
+  "must_not_contain": [
+   "LIMIT 5",
+   "SELECT * FROM customers LIMIT 5"
+  ]
+ },
+ {
+  "id": "S05",
+  "exercise_id": "m1-d2-04",
+  "attempts": 2,
+  "code": "SELECT order_id, order_date, total_uah FROM orders WHERE total_uah > 5000 АND status = 'delivered'",
+  "lastError": "syntax error at or near \"АND\"",
+  "lastCheckMessage": "",
+  "category": "кирилична А в AND",
+  "expected": "Вказати, що слово AND виглядає правильно, але перша літера, ймовірно, кирилична; порадити перенабрати слово латиницею. Не переписувати умову готовою.",
+  "must_not_contain": [
+   "AND status = 'delivered'",
+   "WHERE total_uah > 5000 AND status = 'delivered'"
+  ]
+ },
+ {
+  "id": "S06",
+  "exercise_id": "m1-d5-02",
+  "attempts": 2,
+  "code": "SELECT product_name, price_uah, cost_uah, price_uah - cost_uha AS margin_uah FROM products",
+  "lastError": "column \"cost_uha\" does not exist",
+  "lastCheckMessage": "",
+  "category": "друкарська помилка в назві колонки",
+  "expected": "Вказати, що в виразі маржі є назва, якої немає в products (cost_uha), порівняти з колонками таблиці; зауважити, що база навіть підказує схожу назву. Не писати повний вираз.",
+  "must_not_contain": [
+   "price_uah - cost_uah AS margin_uah",
+   "price_uah - cost_uah"
+  ]
+ },
+ {
+  "id": "S07",
+  "exercise_id": "m1-d1-05",
+  "attempts": 2,
+  "code": "SELECT \"Order_ID\", order_date, total_uah FROM orders LIMIT 20",
+  "lastError": "column \"Order_ID\" does not exist",
+  "lastCheckMessage": "",
+  "category": "регістр у лапках",
+  "expected": "Пояснити: у подвійних лапках регістр має значення, колонка в базі пишеться малими літерами; лапки тут не потрібні. Не давати готовий SELECT.",
+  "must_not_contain": [
+   "SELECT order_id, order_date, total_uah FROM orders LIMIT 20",
+   "order_id, order_date, total_uah",
+   "order_id"
+  ]
+ },
+ {
+  "id": "S08",
+  "exercise_id": "m1-d1-08",
+  "attempts": 2,
+  "code": "SELECT * FROM customer LIMIT 5",
+  "lastError": "relation \"customer\" does not exist",
+  "lastCheckMessage": "",
+  "category": "relation does not exist (однина)",
+  "expected": "Вказати на назву таблиці після FROM, порадити звірити з переліком таблиць (customers). Можна не називати правильну назву прямо, а попросити порівняти зі схемою.",
+  "must_not_contain": [
+   "FROM customers",
+   "SELECT * FROM customers LIMIT 5",
+   "customers"
+  ]
+ },
+ {
+  "id": "S09",
+  "exercise_id": "m1-d7-02",
+  "attempts": 2,
+  "code": "SELECT COUNT(*) FROM order",
+  "lastError": "syntax error at or near \"order\"",
+  "lastCheckMessage": "",
+  "category": "зарезервоване слово як назва таблиці (order)",
+  "expected": "Пояснити, що ORDER — службове слово (ORDER BY), тому база плутається; назва таблиці в схемі інша (у множині). Не давати готовий запит.",
+  "must_not_contain": [
+   "FROM orders",
+   "SELECT COUNT(*) FROM orders",
+   "orders"
+  ]
+ },
+ {
+  "id": "S10",
+  "exercise_id": "m1-d8-03",
+  "attempts": 2,
+  "code": "SELECT city, COUNT(*) FROM customers",
+  "lastError": "column \"customers.city\" must appear in the GROUP BY clause or be used in an aggregate function",
+  "lastCheckMessage": "",
+  "category": "GROUP BY без колонки",
+  "expected": "Пояснити правило: колонка поруч з агрегатом має бути у GROUP BY; вказати на city. Можна навести приклад на іншій таблиці. Не писати GROUP BY city повністю.",
+  "must_not_contain": [
+   "GROUP BY city",
+   "SELECT city, COUNT(*) FROM customers GROUP BY city",
+   "GROUP BY"
+  ]
+ },
+ {
+  "id": "S11",
+  "exercise_id": "m1-d8-07",
+  "attempts": 2,
+  "code": "SELECT acquisition_channel, AVG(total_uah) FROM orders o JOIN customers c ON customer_id = customer_id GROUP BY acquisition_channel",
+  "lastError": "column reference \"customer_id\" is ambiguous",
+  "lastCheckMessage": "",
+  "category": "неоднозначна колонка в JOIN",
+  "expected": "Пояснити: customer_id є в обох таблицях, потрібно вказати, з якої саме (через псевдонім таблиці). Вказати на умову ON. Не писати готову умову ON.",
+  "must_not_contain": [
+   "c.customer_id = o.customer_id",
+   "o.customer_id = c.customer_id",
+   "ON c.customer_id"
+  ]
+ },
+ {
+  "id": "S12",
+  "exercise_id": "m1-d10-04",
+  "attempts": 2,
+  "code": "SELECT category, COUNT(*) FROM products WHERE COUNT(*) > 18 GROUP BY category",
+  "lastError": "aggregate functions are not allowed in WHERE",
+  "lastCheckMessage": "",
+  "category": "агрегат у WHERE",
+  "expected": "Пояснити: WHERE фільтрує рядки до групування, агрегатів ще не існує; умова на групи — в іншому розділі запиту, що йде після GROUP BY. Назвати HAVING можна лише як напрям, без готового запиту.",
+  "must_not_contain": [
+   "HAVING COUNT(*) > 18",
+   "GROUP BY category HAVING",
+   "HAVING"
+  ]
+ },
+ {
+  "id": "S13",
+  "exercise_id": "m1-d11-03",
+  "attempts": 2,
+  "code": "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products WHERE margin_uah > 2000",
+  "lastError": "column \"margin_uah\" does not exist",
+  "lastCheckMessage": "",
+  "category": "псевдонім у WHERE",
+  "expected": "Пояснити порядок виконання: WHERE виконується до SELECT, псевдонім ще не існує; треба повторити вираз. Не писати готове WHERE.",
+  "must_not_contain": [
+   "WHERE price_uah - cost_uah > 2000"
+  ]
+ },
+ {
+  "id": "S14",
+  "exercise_id": "m1-d5-05",
+  "attempts": 2,
+  "code": "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah)::numeric / (SELECT COUNT(*) FROM orders WHERE status = 'refunded') AS margin_share FROM products",
+  "lastError": "division by zero",
+  "lastCheckMessage": "",
+  "category": "ділення на нуль",
+  "expected": "Розшифрувати division by zero: знаменник дорівнює нулю (підзапит нічого не знайшов за статусом, якого немає в даних). Зазначити, що в задачі ділити треба на ціну, а не на кількість замовлень. Не давати готовий вираз.",
+  "must_not_contain": [
+   "/ price_uah",
+   "::numeric / price_uah",
+   "(price_uah - cost_uah)::numeric / price_uah"
+  ]
+ },
+ {
+  "id": "S15",
+  "exercise_id": "m1-d2-10",
+  "attempts": 2,
+  "code": "SELECT * FROM customers WHERE acquisition_channel = 'telegram' AND registered_at >= '2026-13-01'",
+  "lastError": "date/time field value out of range: \"2026-13-01\"",
+  "lastCheckMessage": "",
+  "category": "неправильна дата (місяць 13)",
+  "expected": "Пояснити: формат РРРР-ММ-ДД, місяця 13 не існує; вказати на літерал дати. Не підставляти готову дату.",
+  "must_not_contain": [
+   "'2026-01-01'",
+   "registered_at >= '2026-01-01'"
+  ]
+ },
+ {
+  "id": "S16",
+  "exercise_id": "m1-d4-02",
+  "attempts": 2,
+  "code": "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah DESC LIMIT '10 шт'",
+  "lastError": "invalid input syntax for type bigint: \"10 шт\"",
+  "lastCheckMessage": "",
+  "category": "LIMIT як рядок з текстом",
+  "expected": "Пояснити: LIMIT очікує просте число, без лапок і слів. Не писати LIMIT 10.",
+  "must_not_contain": [
+   "LIMIT 10"
+  ]
+ },
+ {
+  "id": "S17",
+  "exercise_id": "m1-d7-04",
+  "attempts": 2,
+  "code": "/* виручка за 2025 рік\nSELECT SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'",
+  "lastError": "unterminated /* comment at or near \"/* виручка за 2025 рік\nSELECT SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'\"",
+  "lastCheckMessage": "",
+  "category": "незакритий багаторядковий коментар",
+  "expected": "Пояснити: коментар, що починається з /*, треба закрити; усе після нього база вважає коментарем. Вказати на перший рядок. Не переписувати запит.",
+  "must_not_contain": [
+   "*/"
+  ]
+ },
+ {
+  "id": "S18",
+  "exercise_id": "m1-d1-08",
+  "attempts": 2,
+  "code": "SELECT * FROM customers LIMIT 5; SELECT * FROM orders LIMIT 5;",
+  "lastError": "cannot insert multiple commands into a prepared statement",
+  "lastCheckMessage": "",
+  "category": "два запити через крапку з комою",
+  "expected": "Пояснити: застосунок виконує один запит за раз; другий треба запускати окремо. Не давати переписаний запит.",
+  "must_not_contain": []
+ },
+ {
+  "id": "S19",
+  "exercise_id": "m1-d4-02",
+  "attempts": 2,
+  "code": "SELECT product_name, brand, price_uah FROM products LIMIT 10 ORDER BY price_uah DESC",
+  "lastError": "syntax error at or near \"ORDER\"",
+  "lastCheckMessage": "",
+  "category": "порядок розділів: LIMIT перед ORDER BY",
+  "expected": "Пояснити порядок розділів запиту: LIMIT завжди останній. Вказати на місце ORDER BY. Не давати повний запит.",
+  "must_not_contain": [
+   "ORDER BY price_uah DESC LIMIT 10",
+   "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah DESC LIMIT 10"
+  ]
+ },
+ {
+  "id": "S20",
+  "exercise_id": "m1-d2-02",
+  "attempts": 2,
+  "code": "SELECT * FROM customers WHERE city = 'Львів",
+  "lastError": "unterminated quoted string at or near \"'Львів\"",
+  "lastCheckMessage": "",
+  "category": "незакритий рядок (немає закривальної лапки)",
+  "expected": "Вказати, що рядок відкрито одинарною лапкою, але не закрито. Не давати готовий запит.",
+  "must_not_contain": [
+   "city = 'Львів'",
+   "WHERE city = 'Львів'"
+  ]
+ }
 ]

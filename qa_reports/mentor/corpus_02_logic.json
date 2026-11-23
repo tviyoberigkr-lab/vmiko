@@ -94,7 +94,8 @@
   "expected": "Помітити, що «понад 500 клієнтів» учень зробив умовою на рядок (customer_id > 500), а це умова на результат групування; пояснити різницю WHERE (до групування, по рядках) і HAVING (після, по агрегатах) на прикладі іншої таблиці. Не писати HAVING COUNT(*) > 500 у готовому вигляді.",
   "must_not_contain": [
    "HAVING COUNT(*) > 500",
-   "GROUP BY city HAVING"
+   "GROUP BY city HAVING",
+   "HAVING"
   ],
   "check_stage": "visible",
   "check_code": "row_count"
@@ -125,7 +126,8 @@
   "category": "ORDER BY ASC замість DESC (відхилено порядком)",
   "expected": "Сказати прямо: рядки правильні, відхилено лише через порядок, і це напрям сортування; ASC дає від меншого до більшого, а в завданні потрібно інакше. Це «правильно по суті, відхилено порядком», а не помилка вибірки. Не писати повний запит.",
   "must_not_contain": [
-   "ORDER BY margin_uah DESC"
+   "ORDER BY margin_uah DESC",
+   "DESC"
   ],
   "check_stage": "visible",
   "check_code": "order"
@@ -156,7 +158,8 @@
   "category": "GROUP BY не по тій колонці",
   "expected": "Помітити, що групування йде за brand, а завдання питає про категорії; сама схема (AVG, DESC, LIMIT 5) правильна. Запитати, за якою колонкою групується те, що треба порівняти. Не називати категорії-переможці й не писати GROUP BY category повністю.",
   "must_not_contain": [
-   "GROUP BY category"
+   "GROUP BY category",
+   "category"
   ],
   "check_stage": "visible",
   "check_code": "values"
@@ -173,7 +176,8 @@
   "must_not_contain": [
    "delivery_date IS NULL",
    "5131",
-   "5 131"
+   "5 131",
+   "IS NULL"
   ],
   "check_stage": "visible",
   "check_code": "row_count"
@@ -188,7 +192,8 @@
   "category": "формат місяця TO_CHAR замість DATE_TRUNC (відхилено форматом)",
   "expected": "Прямо: логіка групування за місяцями правильна, відхилено через тип значення — тут очікується дата (початок місяця), а не текст 'РРРР-ММ'. Не плутати з помилкою логіки. Підказати напрям (функція, що обрізає дату до місяця), але не писати DATE_TRUNC('month', order_date) готовим рядком.",
   "must_not_contain": [
-   "DATE_TRUNC('month', order_date)"
+   "DATE_TRUNC('month', order_date)",
+   "DATE_TRUNC"
   ],
   "check_stage": "visible",
   "check_code": "values"
@@ -295,7 +300,8 @@
   "category": "правильно по суті, відхилено через округлення",
   "expected": "Сказати прямо: логіка вірна (група, середнє, топ-5), але ROUND змінює значення настільки, що перевірка їх не приймає; значення мають бути точні. Це не помилка логіки. Не називати правильні значення.",
   "must_not_contain": [
-   "AVG(price_uah - cost_uah) AS avg_margin_uah"
+   "AVG(price_uah - cost_uah) AS avg_margin_uah",
+   "другого аргумент"
   ],
   "check_stage": "visible",
   "check_code": "values"
@@ -311,7 +317,8 @@
   "expected": "Перевірка каже лише «значення відрізняються»; наставник має сам помітити, що замість найдорожчих береться 10 найдешевших (напрям сортування), і сказати, що вибір рядків залежить від напряму. Не писати DESC у готовому запиті.",
   "must_not_contain": [
    "ORDER BY price_uah DESC LIMIT 10",
-   "ORDER BY price_uah DESC"
+   "ORDER BY price_uah DESC",
+   "DESC"
   ],
   "check_stage": "visible",
   "check_code": "values"

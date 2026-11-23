@@ -26,7 +26,8 @@
   "must_not_contain": [
    "HAVING COUNT(*) > 18",
    "SELECT category, COUNT(*) FROM products GROUP BY category HAVING COUNT(*) > 18",
-   "HAVING COUNT(*)"
+   "HAVING COUNT(*)",
+   "HAVING"
   ]
  },
  {
@@ -201,7 +202,8 @@
    "GROUP BY city",
    "SELECT city, COUNT(*) FROM customers GROUP BY city",
    "Конечно",
-   "Помогу"
+   "Помогу",
+   "GROUP BY"
   ]
  },
  {
@@ -217,7 +219,8 @@
    "GROUP BY city",
    "SELECT city, COUNT(*) FROM customers GROUP BY city",
    "вибач",
-   "Прошу вибачення"
+   "Прошу вибачення",
+   "GROUP BY"
   ]
  },
  {
@@ -234,7 +237,8 @@
    "SELECT category, COUNT(*) FROM products GROUP BY category HAVING COUNT(*) > 18",
    "Here is",
    "Sure,",
-   "Of course"
+   "Of course",
+   "HAVING"
   ]
  },
  {
