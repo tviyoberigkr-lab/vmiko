@@ -570,6 +570,9 @@ ${code}
     let leaked = leakedNames(text, allowed);
     let retried = false;
     let guarded = false;
+    let reverted = false;
+    // Перша відповідь на випадок, коли повтор зробить гірше (прогін 5, кейс A18).
+    const firstText = text, firstTruncated = truncated;
 
     // Витік — порушення тверде: краще нейтральний текст, ніж видана відповідь.
     // Решта (обсяг, відсутнє запитання, рід у звертанні) — м'які: один повтор, і якщо модель
@@ -621,11 +624,18 @@ ${code}
         console.error("mentor: повтор запобіжника не вдався, лишаємося з першою відповіддю");
       }
 
-      // Не впоралася і вдруге — краще нейтральний текст, ніж підказка з готовою відповіддю.
-      if (leaked.length) { text = GUARD_TEXT; guarded = true; truncated = false; }
+      if (leaked.length && !causeNames.length) {
+        // Прогін 5, A18: повтор замовили через граматику, а модель у переписаній відповіді
+        // назвала колонку, якої в першій не було. Заглушка тут була б гіршою за першу
+        // відповідь: та витоку не мала і була корисною. Повертаємо її як є.
+        text = firstText; truncated = firstTruncated; leaked = []; reverted = true;
+      } else if (leaked.length) {
+        // Витік був і до повтору, і після — краще нейтральний текст, ніж готова відповідь.
+        text = GUARD_TEXT; guarded = true; truncated = false;
+      }
       // Логуємо і причину повтору, і те, що з неї лишилося: інакше з логів не видно,
       // чи запобіжник упіймав витік, чи лише граматику (ця дірка знайшлася на прогоні 4).
-      console.log(`mentor guard: cause_names=${causeNames.join("|") || "-"} cause_soft=${causeSoft.length} after_names=${leaked.join("|") || "-"} after_soft=${softProblems().length} guarded=${guarded ? 1 : 0} dev=${devHash}`);
+      console.log(`mentor guard: cause_names=${causeNames.join("|") || "-"} cause_soft=${causeSoft.length} after_names=${leaked.join("|") || "-"} after_soft=${softProblems().length} guarded=${guarded ? 1 : 0} reverted=${reverted ? 1 : 0} dev=${devHash}`);
     }
 
     return json({
@@ -634,6 +644,7 @@ ${code}
       truncated,
       retried,
       guarded,
+      reverted,
       stop_reason: stop,
       content_types: types,
       usage: { input_tokens: inTok, output_tokens: outTok },

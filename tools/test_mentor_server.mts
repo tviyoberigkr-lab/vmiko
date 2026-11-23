@@ -440,6 +440,32 @@ console.log('\n[И] Запобіжник: обсяг, запитання в кі
   const fixMsg = String(lastPayload.messages?.[2]?.content ?? '');
   check('повтор просить підказку з нуля, без згадки вказівки', /Ні цієї вказівки/.test(fixMsg), fixMsg.slice(0, 120));
 
+  // Повтор замовили через граматику, а переписана відповідь назвала колонку, якої в першій
+  // не було (прогін 5, A18): лишаємо ПЕРШУ відповідь, а не заглушку.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Твій запит рахує всі замовлення разом, бо ти не задав групування. Що розбиває рядки на групи?'),
+    text('У твоєму запиті немає групування за delivery_date, тому сума одна. Що саме розбиває рядки?'),
+  ];
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-revert-001' }));
+  gj = await g.json();
+  check('повтор, що привів до витоку, відкочено до першої відповіді',
+    gj.reverted === true && gj.guarded === false && /не задав групування/.test(gj.text),
+    JSON.stringify({ rev: gj.reverted, gu: gj.guarded, t: gj.text.slice(0, 60) }));
+
+  // Витік був і ДО повтору, і після — тоді заглушка, а не відкат.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Проблема в тому, що delivery_date тут порожня. Що це означає для твоєї умови?'),
+    text('Проблема в тому, що delivery_date тут порожня. Як це змінює умову?'),
+  ];
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-guard-002' }));
+  gj = await g.json();
+  check('витік до і після повтору → заглушка, без відкату',
+    gj.guarded === true && gj.reverted === false, JSON.stringify({ gu: gj.guarded, rev: gj.reverted }));
+
   // М'яка проблема лишилася і після повтору — підказку НЕ підміняємо.
   anthropicCalls = 0;
   anthropicReply = [
