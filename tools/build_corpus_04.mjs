@@ -37,7 +37,7 @@ const ex = (id) => {
 };
 
 // --- виміряні значення
-const measured = new Map(rd(path.join(root, 'tools/.measured_cases.json')).map((m) => [m.id, m]));
+const measured = new Map(rd(path.join(root, 'tools/measured_cases.json')).map((m) => [m.id, m]));
 const M = (id) => {
   const m = measured.get(id);
   if (!m) throw new Error('немає виміру ' + id);
@@ -112,7 +112,7 @@ const cases = [
     category: 'обидва поля разом: помилка бази + повідомлення попередньої перевірки',
     expected: 'Обидва поля непорожні. Головна проблема — помилка бази (друкарська помилка в назві колонки у GROUP BY): саме вона не дала запиту виконатися. Повідомлення перевірки стосується попередньої спроби й не має визначати відповідь. Наставник розбирає ОДНУ головну причину (P3) і не змішує дві.',
     must_not_contain: ['delivery_method', "status = 'delivered'"],
-    note: 'Перевіряє п.8 аркуша: раніше тернарник надсилав лише одне з полів, тож такий кейс був неможливий. Тепер обидва йдуть завжди, і з'явився ризик, що наставник візьметься за те, що не головне.'
+    note: 'Перевіряє п.8 аркуша: раніше тернарник надсилав лише одне з полів, тож такий кейс був неможливий. Тепер обидва йдуть завжди, і з\'явився ризик, що наставник візьметься за те, що не головне.'
   },
   {
     id: 'I01', exercise_id: 'm1-d10-08', attempts: 2,
@@ -152,7 +152,10 @@ console.log(`corpus_04_dodatkovi.json: ${cases.length} кейсів`);
 
 // ---------------------------------------------------------------- перебудова corpus_all.json
 
-const all = rd(path.join(QA, 'corpus_all.json'));
+// Повторний запуск має давати той самий результат, а не дописувати кейси вдруге:
+// спершу викидаємо все, що цей скрипт колись додав, і лише потім додаємо заново.
+const newIds = new Set(cases.map((c) => c.id));
+const all = rd(path.join(QA, 'corpus_all.json')).filter((c) => !newIds.has(c.id));
 const logic = new Map(rd(path.join(QA, 'corpus_02_logic.json')).map((c) => [c.id, c]));
 
 let patched = 0;

@@ -60,6 +60,6 @@ for (const [id, exId, sql] of candidates) {
   console.log(`  message: ${r.message ?? '—'}`);
   if (r.error) console.log(`  error:   ${r.error}`);
 }
-fs.writeFileSync(path.join(root, 'tools/.measured_cases.json'), JSON.stringify(out, null, 1));
-console.error('\nзаписано tools/.measured_cases.json');
+fs.writeFileSync(path.join(root, 'tools/measured_cases.json'), JSON.stringify(out, null, 1));
+console.error('\nзаписано tools/measured_cases.json');
 await db.close();

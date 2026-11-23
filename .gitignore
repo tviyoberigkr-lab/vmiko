@@ -1,3 +1,17 @@
 node_modules/
 .DS_Store
-qa_reports/
+
+# Звіти комісії з датами в назві — снапшоти однієї перевірки, у репозиторії не потрібні
+# (вони живуть у D:\CLOUD\Комісія по виявленню недоліків\Звіти\).
+# А рубрики, корпуси й SQL підготовки — тестові активи, якими користується кожен наступний
+# прогін, тому вони відстежуються. Рішення Маяка 23.11.2026: втратити рубрики разом із
+# контейнером сесії було б дорожче, ніж тримати їх у git.
+qa_reports/*
+!qa_reports/mentor/
+qa_reports/mentor/*
+!qa_reports/mentor/rubric_*.md
+!qa_reports/mentor/corpus_*.json
+!qa_reports/mentor/exercises_sql.json
+!qa_reports/mentor/schema_short.md
+!qa_reports/mentor/*.sql
+!qa_reports/mentor/ДО_ВИПРАВЛЕННЯ_mentor.md

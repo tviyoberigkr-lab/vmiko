@@ -1,0 +1,710 @@
+[
+ {
+  "id": "m1-d1-02",
+  "type": "sql",
+  "title": "Перший запит: подивитися на замовлення",
+  "prompt": "Натисни **Запустити** — запит уже написаний. `SELECT *` означає «усі колонки», `FROM orders` — «з таблиці замовлень», `LIMIT 10` — «лише 10 рядків». Подивись на результат, потім натисни **Перевірити**.",
+  "reference": "SELECT * FROM orders LIMIT 10",
+  "hints": [
+   "Нічого міняти не треба: натисни «Запустити», а потім «Перевірити».",
+   "Якщо ти змінив текст — поверни: SELECT * FROM orders LIMIT 10",
+   "Приклад на іншій таблиці: SELECT * FROM products LIMIT 3 — та сама будова, лише інша таблиця й кількість рядків."
+  ]
+ },
+ {
+  "id": "m1-d1-05",
+  "type": "sql",
+  "title": "Номер, дата і сума — 20 замовлень",
+  "prompt": "Олена хоче побачити короткий список: **номер замовлення, дату і суму** (`order_id`, `order_date`, `total_uah`) — **20 рядків**. Напиши запит.",
+  "reference": "SELECT order_id, order_date, total_uah FROM orders LIMIT 20",
+  "hints": [
+   "Після SELECT перелічи три колонки через кому.",
+   "SELECT order_id, … , … FROM orders LIMIT 20 — дописати дві колонки.",
+   "Приклад на іншій таблиці: SELECT full_name, city FROM customers LIMIT 5"
+  ]
+ },
+ {
+  "id": "m1-d1-06",
+  "type": "parsons",
+  "title": "Збери запит з блоків",
+  "prompt": "Збери запит: **назва товару і ціна** (`product_name`, `price_uah`) з таблиці `products`, **5 рядків**. Торкайся блоків по черзі. Є зайві блоки.",
+  "reference": "SELECT product_name, price_uah FROM products LIMIT 5",
+  "hints": [
+   "Порядок завжди такий: SELECT → колонки → FROM таблиця → LIMIT.",
+   "Колонки розділяються комою. Число в LIMIT пишеться цифрами.",
+   "Схожий запит на іншій таблиці: SELECT full_name, city FROM customers LIMIT 3"
+  ]
+ },
+ {
+  "id": "m1-d1-07",
+  "type": "sql",
+  "title": "Знайди помилку: де друга колонка?",
+  "prompt": "Колега хотів показати **номер замовлення і суму** для 5 замовлень. Запит виконується без помилки, але колонка в результаті одна. Запусти, знайди помилку і виправ.",
+  "reference": "SELECT order_id, total_uah FROM orders LIMIT 5",
+  "hints": [
+   "Подивись на заголовок колонки в результаті: він називається total_uah, але значення — номери замовлень.",
+   "Між колонками бракує коми. Без коми друге слово стає новою назвою (псевдонімом) першої колонки.",
+   "Приклад на іншій таблиці: SELECT product_name, brand FROM products LIMIT 3 — між колонками кома, тому їх дві."
+  ]
+ },
+ {
+  "id": "m1-d1-08",
+  "type": "sql",
+  "title": "Хто наші клієнти?",
+  "prompt": "Подивимось на таблицю клієнтів `customers`. Виведи **всі колонки**, **5 рядків**.",
+  "reference": "SELECT * FROM customers LIMIT 5",
+  "hints": [
+   "Усі колонки — це зірочка *.",
+   "SELECT * FROM … LIMIT …",
+   "Приклад на іншій таблиці: SELECT * FROM products LIMIT 3"
+  ]
+ },
+ {
+  "id": "m1-d1-10",
+  "type": "sql",
+  "title": "Каталог товарів",
+  "prompt": "Олена готує прайс. Виведи з `products` **назву, категорію, бренд і ціну** (`product_name`, `category`, `brand`, `price_uah`) — **15 рядків**.",
+  "reference": "SELECT product_name, category, brand, price_uah FROM products LIMIT 15",
+  "hints": [
+   "Чотири колонки через кому після SELECT.",
+   "Спочатку перелік чотирьох колонок через кому, далі FROM і назва таблиці, а останнім — LIMIT із потрібною кількістю рядків.",
+   "Приклад на іншій таблиці: SELECT order_id, order_date, status, total_uah FROM orders LIMIT 5"
+  ]
+ },
+ {
+  "id": "m1-d2-02",
+  "type": "sql",
+  "title": "Клієнти зі Львова",
+  "prompt": "Олена планує пункт самовивозу у Львові. Виведи **всіх клієнтів** (усі колонки) з міста **Львів**.",
+  "reference": "SELECT * FROM customers WHERE city = 'Львів'",
+  "hints": [
+   "Умова: колонка city дорівнює тексту Львів. Текст — в одинарних лапках.",
+   "WHERE city = '…'",
+   "Приклад на іншій таблиці: SELECT * FROM products WHERE brand = 'Bosch'"
+  ]
+ },
+ {
+  "id": "m1-d2-03",
+  "type": "sql",
+  "title": "Знайди помилку: Львів без лапок",
+  "prompt": "Колега написав запит, але база видає помилку. Запусти, прочитай помилку і виправ запит, щоб він показав **клієнтів зі Львова** (усі колонки).",
+  "reference": "SELECT * FROM customers WHERE city = 'Львів'",
+  "hints": [
+   "База пише «column … does not exist»: слово без лапок вона вважає назвою колонки.",
+   "Візьми Львів в одинарні лапки: 'Львів'.",
+   "Приклад на іншій таблиці: SELECT * FROM orders WHERE delivery_method = 'Самовивіз' — текст у лапках."
+  ]
+ },
+ {
+  "id": "m1-d2-04",
+  "type": "sql",
+  "title": "Великі доставлені замовлення",
+  "prompt": "Знайди всі замовлення **понад 5000 грн** зі статусом **delivered**. Виведи `order_id`, `order_date`, `total_uah`.",
+  "reference": "SELECT order_id, order_date, total_uah FROM orders WHERE total_uah > 5000 AND status = 'delivered'",
+  "hints": [
+   "Дві умови мають виконуватися одночасно — з'єднай їх словом AND.",
+   "З'єднай дві умови через AND: перша порівнює суму з числом (число без лапок, знак — строго «більше»), друга порівнює статус із текстом (текст у лапках).",
+   "Приклад на іншій таблиці: SELECT product_name, price_uah FROM products WHERE price_uah > 3000 AND brand = 'Philips'"
+  ]
+ },
+ {
+  "id": "m1-d2-08",
+  "type": "sql",
+  "title": "Укрпошта або самовивіз",
+  "prompt": "Олена порівнює дешеві способи доставки. Знайди замовлення зі способом доставки **«Укрпошта» або «Самовивіз»** (**будь-якого статусу**, статус не фільтруємо) на суму **понад 3000 грн**. Виведи `order_id`, `delivery_method`, `total_uah`.",
+  "reference": "SELECT order_id, delivery_method, total_uah FROM orders WHERE (delivery_method = 'Укрпошта' OR delivery_method = 'Самовивіз') AND total_uah > 3000",
+  "hints": [
+   "Тут змішані OR і AND — без дужок умова суми спрацює лише для одного способу доставки.",
+   "(delivery_method = 'Укрпошта' OR delivery_method = '…') AND total_uah > 3000",
+   "Приклад на іншій таблиці: SELECT * FROM customers WHERE (city = 'Одеса' OR city = 'Дніпро') AND acquisition_channel = 'telegram'"
+  ]
+ },
+ {
+  "id": "m1-d2-09",
+  "type": "parsons",
+  "title": "Збери запит: недорогі навушники",
+  "prompt": "Збери запит: **назва і ціна** товарів категорії **«Навушники»** дешевше **1000 грн**. Є зайві блоки.",
+  "reference": "SELECT product_name, price_uah FROM products WHERE category = 'Навушники' AND price_uah < 1000",
+  "hints": [
+   "Обидві умови мають виконуватися разом — AND, не OR.",
+   "Категорія — текст у лапках; ціна — число без лапок і без «грн».",
+   "Схожий запит на іншій таблиці: SELECT full_name, city FROM customers WHERE city = 'Одеса' AND acquisition_channel = 'email'"
+  ]
+ },
+ {
+  "id": "m1-d2-10",
+  "type": "sql",
+  "title": "Нові клієнти з Telegram",
+  "prompt": "Маркетолог запустив рекламу в Telegram. Виведи **всіх клієнтів** (усі колонки), які прийшли з каналу **telegram** і зареєструвалися **з 1 січня 2026 року** (включно).",
+  "reference": "SELECT * FROM customers WHERE acquisition_channel = 'telegram' AND registered_at >= '2026-01-01'",
+  "hints": [
+   "Канал — колонка acquisition_channel. Дата — registered_at, записується в лапках у форматі 'РРРР-ММ-ДД'.",
+   "acquisition_channel = 'telegram' AND registered_at >= '2026-01-01'",
+   "Приклад на іншій таблиці: SELECT * FROM orders WHERE status = 'cancelled' AND order_date >= '2026-06-01'"
+  ]
+ },
+ {
+  "id": "m1-d3-02",
+  "type": "sql",
+  "title": "Товари трьох брендів",
+  "prompt": "Олена домовляється про знижку з дистриб'ютором, який возить **Xiaomi, Anker і Baseus**. Виведи `product_name`, `brand`, `price_uah` усіх товарів цих трьох брендів.",
+  "reference": "SELECT product_name, brand, price_uah FROM products WHERE brand IN ('Xiaomi', 'Anker', 'Baseus')",
+  "hints": [
+   "Три бренди — це перелік. Замість трьох OR скористайся IN.",
+   "WHERE brand IN (…) — у дужках три назви, кожна в одинарних лапках, через кому. Пиши бренди точно як у даних: з великої літери.",
+   "Приклад на іншій таблиці: SELECT * FROM customers WHERE acquisition_channel IN ('email', 'referral')"
+  ]
+ },
+ {
+  "id": "m1-d3-04",
+  "type": "sql",
+  "title": "Замовлення за грудень 2025",
+  "prompt": "Олена хоче розібрати передноворічний сезон. Виведи `order_id`, `order_date`, `total_uah` усіх замовлень за **грудень 2025** — використай `BETWEEN`.",
+  "reference": "SELECT order_id, order_date, total_uah FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31'",
+  "hints": [
+   "Потрібен діапазон дат від першого до останнього дня грудня по колонці order_date.",
+   "order_date BETWEEN '…' AND '…' — дати в лапках у форматі 'РРРР-ММ-ДД'. У грудні 31 день.",
+   "Приклад на іншій таблиці: SELECT * FROM customers WHERE registered_at BETWEEN '2024-06-01' AND '2024-06-30' — клієнти, що зареєструвалися в червні 2024."
+  ]
+ },
+ {
+  "id": "m1-d3-07",
+  "type": "sql",
+  "title": "Знайди помилку: де павербанки?",
+  "prompt": "Колега шукав усі товари, в назві яких є слово «павербанк», і отримав **0 рядків**, хоча павербанки в магазині точно є. Запусти, знайди помилку й виправ. Потрібні колонки: `product_name`, `price_uah`.",
+  "reference": "SELECT product_name, price_uah FROM products WHERE product_name ILIKE '%павербанк%'",
+  "hints": [
+   "Запит не падає, але рядків 0. Порівняй, як слово записане в даних і в умові.",
+   "У назвах «Павербанк» пишеться з великої літери, а LIKE розрізняє регістр. Заміни LIKE на ILIKE.",
+   "Приклад на іншій таблиці: SELECT full_name FROM customers WHERE full_name ILIKE '%петр%' — знайде і «Петро Шевчук», і «Олександр Петренко»."
+  ]
+ },
+ {
+  "id": "m1-d3-09",
+  "type": "sql",
+  "title": "Замовлення без дати доставки",
+  "prompt": "Олена хоче бачити замовлення, які **ще не мають дати доставки**. Виведи `order_id`, `order_date`, `status`, `delivery_date`.",
+  "reference": "SELECT order_id, order_date, status, delivery_date FROM orders WHERE delivery_date IS NULL",
+  "hints": [
+   "Дати доставки немає — це NULL у колонці delivery_date.",
+   "З NULL не працює знак «=». Потрібні два слова: IS NULL.",
+   "Приклад на іншій таблиці: SELECT * FROM orders WHERE promo_code_id IS NULL — замовлення без промокоду."
+  ]
+ },
+ {
+  "id": "m1-d3-11",
+  "type": "parsons",
+  "title": "Збери запит: нові клієнти з трьох міст",
+  "prompt": "Збери запит: **ім'я і місто** клієнтів з **Одеси, Харкова або Дніпра**, які зареєструвалися **у 2025 році**. Є зайві блоки.",
+  "reference": "SELECT full_name, city FROM customers WHERE city IN ('Одеса', 'Харків', 'Дніпро') AND registered_at BETWEEN '2025-01-01' AND '2025-12-31'",
+  "hints": [
+   "Обидві умови мають виконуватися разом — AND, не OR.",
+   "Перелік міст — через IN. У BETWEEN менша дата йде першою.",
+   "Схожий запит на іншій таблиці: SELECT product_name FROM products WHERE brand IN ('Bosch', 'Tefal') AND price_uah BETWEEN 1000 AND 3000"
+  ]
+ },
+ {
+  "id": "m1-d4-02",
+  "type": "sql",
+  "title": "Топ-10 найдорожчих товарів",
+  "prompt": "Олена хоче знати, які товари найдорожчі в каталозі. Виведи `product_name`, `brand`, `price_uah` — **10 найдорожчих**, від найдорожчого.",
+  "reference": "SELECT product_name, brand, price_uah FROM products ORDER BY price_uah DESC LIMIT 10",
+  "hints": [
+   "Спершу відсортуй за ціною від більшої до меншої, потім обмеж кількість рядків.",
+   "ORDER BY price_uah DESC, а після нього LIMIT 10.",
+   "Приклад на іншій таблиці: SELECT order_id, total_uah FROM orders ORDER BY total_uah DESC LIMIT 3 — три найбільші замовлення."
+  ]
+ },
+ {
+  "id": "m1-d4-06",
+  "type": "sql",
+  "title": "Куди дійшла email-розсилка",
+  "prompt": "У вересні 2026 Олена запустила email-розсилку. З яких **міст** прийшли нові клієнти з каналу **email**, що зареєструвалися **з 1 вересня 2026** (включно)? Кожне місто — **один раз**. Виведи лише `city`.",
+  "reference": "SELECT DISTINCT city FROM customers WHERE acquisition_channel = 'email' AND registered_at >= '2026-09-01'",
+  "hints": [
+   "Дві умови (канал і дата) плюс прибрати повтори міст.",
+   "Після SELECT додай DISTINCT; умови: acquisition_channel = 'email' AND registered_at >= '2026-09-01'.",
+   "Приклад на іншій таблиці: SELECT DISTINCT delivery_method FROM orders WHERE status = 'cancelled' — способи доставки, з якими бувають скасування."
+  ]
+ },
+ {
+  "id": "m1-d4-08",
+  "type": "sql",
+  "title": "Звіт: 5 найбільших замовлень грудня",
+  "prompt": "Запит уже знаходить 5 найбільших замовлень грудня 2025. Олена хоче вставити результат у звіт — **перейменуй колонки** точно так: `Номер`, `Дата`, `Сума, грн`.",
+  "reference": "SELECT order_id AS \"Номер\", order_date AS \"Дата\", total_uah AS \"Сума, грн\" FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31' ORDER BY total_uah DESC LIMIT 5",
+  "hints": [
+   "Дані вже правильні — змінити треба лише назви колонок після SELECT.",
+   "Після кожної колонки додай AS і нову назву в подвійних лапках. «Сума, грн» з комою — лапки обов'язкові.",
+   "Приклад на іншій таблиці: SELECT product_name AS \"Товар\", price_uah AS \"Ціна, грн\" FROM products LIMIT 3"
+  ]
+ },
+ {
+  "id": "m1-d4-09",
+  "type": "parsons",
+  "title": "Збери запит: 10 найдешевших кабелів",
+  "prompt": "Збери запит: **назва і ціна** 10 **найдешевших** товарів категорії **«Кабелі та адаптери»**, від найдешевшого. Є зайві блоки.",
+  "reference": "SELECT product_name, price_uah FROM products WHERE category = 'Кабелі та адаптери' ORDER BY price_uah LIMIT 10",
+  "hints": [
+   "Порядок блоків: SELECT → FROM → WHERE → ORDER BY → LIMIT.",
+   "«Найдешевші» — сортування за зростанням, без DESC. Назва категорії має збігатися повністю.",
+   "Схожий запит на іншій таблиці: SELECT order_id, total_uah FROM orders WHERE status = 'delivered' ORDER BY total_uah LIMIT 5"
+  ]
+ },
+ {
+  "id": "m1-d5-02",
+  "type": "sql",
+  "title": "Маржа кожного товару",
+  "prompt": "Виведи для кожного товару `product_name`, `price_uah`, `cost_uah` і маржу в гривнях — **ціна мінус собівартість** — з назвою `margin_uah`.",
+  "reference": "SELECT product_name, price_uah, cost_uah, price_uah - cost_uah AS margin_uah FROM products",
+  "hints": [
+   "Потрібна четверта колонка — різниця двох наявних.",
+   "Допиши через кому після cost_uah: price_uah - cost_uah AS margin_uah.",
+   "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS before_discount FROM orders LIMIT 5 — сума до знижки."
+  ]
+ },
+ {
+  "id": "m1-d5-03",
+  "type": "sql",
+  "title": "10 найприбутковіших товарів",
+  "prompt": "Які 10 товарів дають **найбільшу маржу в гривнях**? Виведи `product_name` і `margin_uah` (ціна мінус собівартість), від найбільшої маржі.",
+  "reference": "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products ORDER BY margin_uah DESC LIMIT 10",
+  "hints": [
+   "Обчисли маржу, як у попередній вправі, а потім відсортуй за нею.",
+   "У ORDER BY можна писати назву з AS: ORDER BY margin_uah DESC LIMIT 10.",
+   "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS full_sum FROM orders ORDER BY full_sum DESC LIMIT 3"
+  ]
+ },
+ {
+  "id": "m1-d5-05",
+  "type": "sql",
+  "title": "Знайди помилку: маржа 0 %",
+  "prompt": "Колега рахував **частку маржі в ціні** (від 0 до 1: 0.3 = 30 %), але в усіх товарів вийшов **0**. Знайди помилку й виправ. Колонки: `product_name`, `price_uah`, `cost_uah`, `margin_share`.",
+  "reference": "SELECT product_name, price_uah, cost_uah, (price_uah - cost_uah)::numeric / price_uah AS margin_share FROM products",
+  "hints": [
+   "price_uah і cost_uah — цілі числа. Згадай, що дає 7 / 2.",
+   "Причина — цілочисельне ділення: різницю ціни та собівартості треба привести до numeric перед тим, як ділити на ціну.",
+   "Приклад без цієї таблиці: SELECT 899 / 1000 дає 0, а SELECT 899::numeric / 1000 дає 0.899."
+  ]
+ },
+ {
+  "id": "m1-d5-07",
+  "type": "sql",
+  "title": "Ціновий сегмент товару",
+  "prompt": "Додай до товарів сегмент. Виведи `product_name`, `price_uah` і `segment`: дешевше **500** грн — `'бюджет'`, від **500 до 1999** — `'середній'`, від **2000** — `'преміум'`.",
+  "reference": "SELECT product_name, price_uah, CASE WHEN price_uah < 500 THEN 'бюджет' WHEN price_uah < 2000 THEN 'середній' ELSE 'преміум' END AS segment FROM products",
+  "hints": [
+   "Три сегменти — дві умови WHEN і ELSE для решти.",
+   "У CASE дві умови WHEN — від меншого порога до більшого, порядок важливий — і ELSE для решти; закінчується END, а після нього назва колонки через AS.",
+   "Приклад на іншій таблиці: SELECT order_id, CASE WHEN discount_uah > 0 THEN 'зі знижкою' ELSE 'без знижки' END AS promo FROM orders LIMIT 5"
+  ]
+ },
+ {
+  "id": "m1-d5-09",
+  "type": "parsons",
+  "title": "Збери запит: великі й звичайні замовлення",
+  "prompt": "Збери запит: для замовлень **грудня 2025** — номер, сума і колонка `size`: від **5000** грн — `'велике'`, інакше `'звичайне'`. Є зайві блоки.",
+  "reference": "SELECT order_id, total_uah, CASE WHEN total_uah >= 5000 THEN 'велике' ELSE 'звичайне' END AS size FROM orders WHERE order_date BETWEEN '2025-12-01' AND '2025-12-31'",
+  "hints": [
+   "CASE — це одна з колонок, тому він іде після SELECT і до FROM.",
+   "У CASE потрібні WHEN … THEN … ELSE … END, а текстові значення — в лапках.",
+   "Схожий запит на іншій таблиці: SELECT product_name, CASE WHEN price_uah >= 3000 THEN 'дорогий' ELSE 'доступний' END AS level FROM products"
+  ]
+ },
+ {
+  "id": "m1-d6-05",
+  "type": "sql",
+  "title": "Великі доставки Укрпоштою в IV кварталі",
+  "prompt": "Олена порівнює перевізників. Знайди **доставлені** (`delivered`) замовлення **Укрпоштою** за **жовтень–грудень 2025** на суму **понад 10 000 грн**. Виведи `order_id`, `order_date`, `total_uah`, від найбільшої суми.",
+  "reference": "SELECT order_id, order_date, total_uah FROM orders WHERE delivery_method = 'Укрпошта' AND status = 'delivered' AND order_date BETWEEN '2025-10-01' AND '2025-12-31' AND total_uah > 10000 ORDER BY total_uah DESC",
+  "hints": [
+   "Чотири умови, усі через AND, і сортування за сумою.",
+   "Чотири умови через AND: спосіб доставки, статус, період (початок і кінець кварталу) і поріг суми. Наприкінці — сортування за сумою від найбільшої.",
+   "Приклад на іншій таблиці: SELECT * FROM customers WHERE city = 'Львів' AND acquisition_channel = 'google_ads' AND registered_at BETWEEN '2025-01-01' AND '2025-03-31' ORDER BY registered_at DESC"
+  ]
+ },
+ {
+  "id": "m1-d6-06",
+  "type": "sql",
+  "title": "Знайди помилку: скасовані чи повернені",
+  "prompt": "Колега хотів показати замовлення **2026 року**, які **скасовані або повернені**. Але в результаті є й замовлення 2024–2025 років. Знайди помилку й виправ. Колонки: `order_id`, `status`, `order_date`.",
+  "reference": "SELECT order_id, status, order_date FROM orders WHERE (status = 'cancelled' OR status = 'returned') AND order_date >= '2026-01-01'",
+  "hints": [
+   "Запусти й подивись на дати скасованих замовлень. Згадай, що виконується раніше — AND чи OR.",
+   "Візьми в дужки дві умови статусу, щоб дата стосувалася обох. Або заміни їх на status IN (…).",
+   "Приклад на іншій таблиці: SELECT * FROM products WHERE (brand = 'Bosch' OR brand = 'Philips') AND price_uah > 5000"
+  ]
+ },
+ {
+  "id": "m1-d6-07",
+  "type": "sql",
+  "title": "Прибуткові зарядки й павербанки",
+  "prompt": "Олена хоче поставити на головну сторінку зарядки й павербанки з **маржею понад 300 грн**. Виведи `product_name`, `category` і `margin_uah` (ціна мінус собівартість) для категорій **«Павербанки»** і **«Зарядні пристрої»**, від найбільшої маржі.",
+  "reference": "SELECT product_name, category, price_uah - cost_uah AS margin_uah FROM products WHERE category IN ('Павербанки', 'Зарядні пристрої') AND price_uah - cost_uah > 300 ORDER BY margin_uah DESC",
+  "hints": [
+   "Тут усе разом: обчислювана колонка, IN, умова на маржу і сортування.",
+   "У WHERE не можна використати назву margin_uah — повтори вираз: price_uah - cost_uah > 300. А в ORDER BY назва працює.",
+   "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS full_sum FROM orders WHERE status IN ('delivered', 'returned') AND total_uah + discount_uah > 20000 ORDER BY full_sum DESC"
+  ]
+ },
+ {
+  "id": "m1-d6-08",
+  "type": "parsons",
+  "title": "Збери запит: клієнти з міст на «Ч»",
+  "prompt": "Збери запит: **ім'я і місто** клієнтів з міст, що **починаються на «Ч»**, які прийшли з **instagram** і зареєструвалися **у 2025 році**. Є зайві блоки.",
+  "reference": "SELECT full_name, city FROM customers WHERE city LIKE 'Ч%' AND acquisition_channel = 'instagram' AND registered_at BETWEEN '2025-01-01' AND '2025-12-31'",
+  "hints": [
+   "Три умови мають виконуватися разом — лише AND.",
+   "«Починається на Ч» — % стоїть після літери. Канал — текст у лапках.",
+   "Схожий запит на іншій таблиці: SELECT product_name FROM products WHERE product_name LIKE 'Фен%' AND brand = 'Philips'"
+  ]
+ },
+ {
+  "id": "m1-d6-09",
+  "type": "sql",
+  "title": "Чекпоінт тижня: великі скасовані замовлення",
+  "prompt": "Олена: «Дай мені список усіх **скасованих** замовлень за **останній квартал** із сумою **понад 3000 грн**, від найбільших». Останній квартал у даних — **липень–вересень 2026**. Виведи `order_id`, `order_date`, `delivery_method`, `total_uah`.",
+  "reference": "SELECT order_id, order_date, delivery_method, total_uah FROM orders WHERE status = 'cancelled' AND order_date BETWEEN '2026-07-01' AND '2026-09-30' AND total_uah > 3000 ORDER BY total_uah DESC",
+  "hints": [
+   "Розклади прохання Олени на частини: статус, період, сума, сортування.",
+   "Чотири частини: статус, період (кінець кварталу порахуй сам), поріг суми і сортування за сумою від найбільшої. Умови фільтра з'єднай через AND.",
+   "Приклад на іншій таблиці: SELECT full_name, city, registered_at FROM customers WHERE acquisition_channel = 'referral' AND registered_at BETWEEN '2026-04-01' AND '2026-06-30' ORDER BY registered_at DESC"
+  ]
+ },
+ {
+  "id": "m1-d7-02",
+  "type": "sql",
+  "title": "Скільки всього замовлень?",
+  "prompt": "Перше питання Олени: **скільки всього замовлень** у базі? Напиши запит, який поверне одне число.",
+  "reference": "SELECT COUNT(*) FROM orders",
+  "hints": [
+   "Порахувати рядки таблиці — це агрегатна функція COUNT.",
+   "Після SELECT напиши COUNT(*) — зірочка означає «усі рядки».",
+   "Приклад на іншій таблиці: SELECT MAX(price_uah) FROM products — та сама будова: функція після SELECT, таблиця після FROM."
+  ]
+ },
+ {
+  "id": "m1-d7-04",
+  "type": "sql",
+  "title": "Виручка за 2025 рік",
+  "prompt": "Яка **виручка за 2025 рік**? Порахуй суму `total_uah` доставлених (`delivered`) замовлень з датою від 1 січня до 31 грудня 2025.",
+  "reference": "SELECT SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'",
+  "hints": [
+   "Сума — функція SUM; рядки відбирає WHERE: статус і рік.",
+   "Одна агрегатна функція — сума по полю суми замовлення. У WHERE дві умови через AND: статус і дата від початку до кінця року.",
+   "Приклад на іншій таблиці: SELECT SUM(price_uah) FROM products WHERE category = 'Фени' — вартість усіх фенів у каталозі по одному."
+  ]
+ },
+ {
+  "id": "m1-d7-05",
+  "type": "sql",
+  "title": "Середній чек",
+  "prompt": "Який **середній чек** — середня сума **доставленого** замовлення за весь час? Можна округлити до копійок через `ROUND(…, 2)`, можна без округлення.",
+  "reference": "SELECT AVG(total_uah) FROM orders WHERE status = 'delivered'",
+  "hints": [
+   "Середнє — функція AVG, і лише доставлені замовлення.",
+   "SELECT AVG(total_uah) FROM orders WHERE status = …",
+   "Приклад на іншій таблиці: SELECT ROUND(AVG(price_uah), 2) FROM products WHERE brand = 'Xiaomi' — середня ціна товарів Xiaomi."
+  ]
+ },
+ {
+  "id": "m1-d7-06",
+  "type": "sql",
+  "title": "Найдешевший і найдорожчий товар",
+  "prompt": "У якому діапазоні цін працює «Кошик»? Виведи **найменшу і найбільшу** `price_uah` у `products` — два числа в одному рядку.",
+  "reference": "SELECT MIN(price_uah), MAX(price_uah) FROM products",
+  "hints": [
+   "Найменше — MIN, найбільше — MAX. Можна кілька агрегатів через кому.",
+   "Через кому два агрегати по полю ціни — найменше і найбільше; таблиця — товари.",
+   "Приклад на іншій таблиці: SELECT MIN(order_date), MAX(order_date) FROM orders — перше й останнє замовлення."
+  ]
+ },
+ {
+  "id": "m1-d7-08",
+  "type": "sql",
+  "title": "Перевір на всій базі",
+  "prompt": "Перевір на справжніх даних: виведи в одному рядку **кількість усіх замовлень** і **кількість замовлень із заповненою датою доставки**.",
+  "reference": "SELECT COUNT(*), COUNT(delivery_date) FROM orders",
+  "hints": [
+   "Два агрегати через кому: один рахує всі рядки, другий — заповнені значення однієї колонки.",
+   "COUNT(*) і COUNT(delivery_date).",
+   "Приклад на іншій таблиці: SELECT COUNT(*), COUNT(promo_code_id) FROM orders — скільки всього замовлень і скільки з промокодом."
+  ]
+ },
+ {
+  "id": "m1-d7-09",
+  "type": "sql",
+  "title": "Скільки клієнтів хоч раз купували",
+  "prompt": "У базі 20 000 клієнтів. А **скільки різних клієнтів** зробили хоча б одне замовлення? `COUNT(DISTINCT колонка)` рахує **різні** значення — використай його по `customer_id` у таблиці `orders`.",
+  "reference": "SELECT COUNT(DISTINCT customer_id) FROM orders",
+  "hints": [
+   "Один клієнт може мати багато замовлень — треба рахувати кожного лише раз.",
+   "COUNT(DISTINCT customer_id) — DISTINCT усередині дужок.",
+   "Приклад на іншій таблиці: SELECT COUNT(DISTINCT brand) FROM products — скільки різних брендів у каталозі."
+  ]
+ },
+ {
+  "id": "m1-d7-10",
+  "type": "parsons",
+  "title": "Збери запит: суми скасованих замовлень",
+  "prompt": "Збери запит: **середня, мінімальна і максимальна** сума **скасованих** замовлень — в одному рядку. Є зайві блоки.",
+  "reference": "SELECT AVG(total_uah), MIN(total_uah), MAX(total_uah) FROM orders WHERE status = 'cancelled'",
+  "hints": [
+   "Три агрегати через кому, потім таблиця, потім фільтр.",
+   "Між агрегатами — коми. Статус — текст у лапках. Агрегати в WHERE не пишуть.",
+   "Схожий запит на іншій таблиці: SELECT AVG(price_uah), MIN(price_uah), MAX(price_uah) FROM products WHERE category = 'Праски'"
+  ]
+ },
+ {
+  "id": "m1-d8-02",
+  "type": "sql",
+  "title": "Виручка за кожен спосіб доставки",
+  "prompt": "Олена: «Скільки грошей приносить кожен спосіб доставки?» Виведи `delivery_method` і **виручку** — суму `total_uah` доставлених замовлень — за весь час.",
+  "reference": "SELECT delivery_method, SUM(total_uah) FROM orders WHERE status = 'delivered' GROUP BY delivery_method",
+  "hints": [
+   "Сума за кожним способом — агрегат плюс групування.",
+   "Допиши SUM(total_uah) у SELECT і в кінці GROUP BY delivery_method.",
+   "Приклад на іншій таблиці: SELECT category, SUM(price_uah) FROM products GROUP BY category"
+  ]
+ },
+ {
+  "id": "m1-d8-03",
+  "type": "sql",
+  "title": "Клієнти за містами",
+  "prompt": "Де живуть клієнти? Виведи `city` і **кількість клієнтів** у кожному місті.",
+  "reference": "SELECT city, COUNT(*) FROM customers GROUP BY city",
+  "hints": [
+   "Таблиця customers, групи — міста, рахуємо рядки.",
+   "У SELECT: місто і підрахунок рядків; таблиця — клієнти; після неї групування за містом.",
+   "Приклад на іншій таблиці: SELECT brand, COUNT(*) FROM products GROUP BY brand — скільки товарів кожного бренду."
+  ]
+ },
+ {
+  "id": "m1-d8-05",
+  "type": "sql",
+  "title": "Знайди помилку: колонка поза GROUP BY",
+  "prompt": "Колега хотів порахувати замовлення **для кожної пари «спосіб доставки + статус»**, але база видає помилку. Прочитай її й виправ запит. Колонки: `delivery_method`, `status`, кількість.",
+  "reference": "SELECT delivery_method, status, COUNT(*) FROM orders GROUP BY delivery_method, status",
+  "hints": [
+   "Помилка каже: status має бути в GROUP BY або в агрегаті.",
+   "Додай status у GROUP BY через кому: GROUP BY delivery_method, status.",
+   "Приклад на іншій таблиці: SELECT city, acquisition_channel, COUNT(*) FROM customers GROUP BY city, acquisition_channel"
+  ]
+ },
+ {
+  "id": "m1-d8-07",
+  "type": "sql",
+  "title": "Середній чек за каналами залучення",
+  "prompt": "Виведи **канал залучення** (`c.acquisition_channel`) і **середній чек** — середню `o.total_uah` доставлених замовлень — для кожного каналу. Рядки з JOIN і фільтром уже є: допиши `SELECT` і `GROUP BY`.",
+  "reference": "SELECT c.acquisition_channel, AVG(o.total_uah) FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'delivered' GROUP BY c.acquisition_channel",
+  "hints": [
+   "Середній чек — AVG від суми замовлення, групи — канали.",
+   "Після коми в SELECT: AVG(o.total_uah). Після GROUP BY: c.acquisition_channel.",
+   "Приклад на іншій таблиці: SELECT brand, AVG(price_uah) FROM products GROUP BY brand"
+  ]
+ },
+ {
+  "id": "m1-d8-09",
+  "type": "parsons",
+  "title": "Збери запит: товари за категоріями",
+  "prompt": "Збери запит: для кожної **категорії** — **кількість товарів** і **середня ціна**. Є зайві блоки.",
+  "reference": "SELECT category, COUNT(*), AVG(price_uah) FROM products GROUP BY category",
+  "hints": [
+   "Групувати треба за тією колонкою, яка стоїть у SELECT без агрегату.",
+   "Між агрегатами — кома. Агрегати в WHERE не пишуть.",
+   "Схожий запит на іншій таблиці: SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders GROUP BY delivery_method"
+  ]
+ },
+ {
+  "id": "m1-d9-03",
+  "type": "sql",
+  "title": "Замовлення за місяцями 2025 року",
+  "prompt": "Виведи **місяць** і **кількість усіх замовлень** за кожен місяць **2025 року**, від січня до грудня. Місяць виведи як першу дату місяця — `DATE_TRUNC('month', …)`: саме цей формат прийнято в усіх вправах модуля, і за ним місяці сортуються як дати. Текст `TO_CHAR` або число `EXTRACT(MONTH …)` перевірка не зарахує, хоч у реальній роботі вони теж трапляються.",
+  "reference": "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+  "hints": [
+   "Скелет уже є — бракує агрегату і фільтра за роком.",
+   "Після коми в SELECT: COUNT(*). У WHERE: order_date BETWEEN '2025-01-01' AND '2025-12-31'.",
+   "Приклад на іншій таблиці: SELECT DATE_TRUNC('year', registered_at) AS year, COUNT(*) FROM customers GROUP BY year ORDER BY year"
+  ]
+ },
+ {
+  "id": "m1-d9-04",
+  "type": "sql",
+  "title": "Виручка за місяцями 2025 року",
+  "prompt": "Тепер гроші. Виведи **місяць** і **виручку** (сума `total_uah` доставлених замовлень) за кожен місяць **2025 року**, від січня до грудня. Місяць виведи як `DATE_TRUNC('month', …)` (перша дата місяця) — інші формати місяця, як-от `TO_CHAR` чи `EXTRACT`, перевірка не зарахує.",
+  "reference": "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+  "hints": [
+   "Як попередній запит, але сума замість кількості і ще одна умова у WHERE.",
+   "Як у попередній вправі, але замість кількості — сума по полю суми замовлення. У WHERE додається умова на статус, групування й сортування — за місяцем.",
+   "Приклад на іншій таблиці: SELECT DATE_TRUNC('quarter', registered_at) AS q, COUNT(*) FROM customers WHERE acquisition_channel = 'telegram' GROUP BY q ORDER BY q"
+  ]
+ },
+ {
+  "id": "m1-d9-07",
+  "type": "sql",
+  "title": "Перевір гіпотезу: VESNA25 за місяцями",
+  "prompt": "У VESNA25 `promo_code_id = 5`, діяв з 1 березня по 15 квітня 2025. Порахуй, **скільки замовлень з цим промокодом** було **в кожному місяці**: виведи місяць і кількість, по порядку місяців. Місяць виведи як `DATE_TRUNC('month', …)` (перша дата місяця) — інші формати місяця, як-от `TO_CHAR` чи `EXTRACT`, перевірка не зарахує.",
+  "reference": "SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE promo_code_id = 5 GROUP BY month ORDER BY month",
+  "hints": [
+   "Фільтр за промокодом і групування за місяцем.",
+   "Фільтруй за ідентифікатором промокоду з умови, групуй і сортуй за місяцем. У SELECT: місяць і кількість рядків; формат місяця той самий, що в попередніх вправах.",
+   "Приклад на іншій таблиці: SELECT DATE_TRUNC('month', registered_at) AS month, COUNT(*) FROM customers WHERE acquisition_channel = 'email' GROUP BY month ORDER BY month"
+  ]
+ },
+ {
+  "id": "m1-d9-09",
+  "type": "parsons",
+  "title": "Збери запит: нові клієнти за місяцями",
+  "prompt": "А може, у березні просто прийшло менше нових клієнтів? Збери запит: **кількість реєстрацій за місяцями 2025 року**, по порядку місяців. Є зайві блоки. Місяць виведи як `DATE_TRUNC('month', …)` (перша дата місяця) — інші формати місяця, як-от `TO_CHAR` чи `EXTRACT`, перевірка не зарахує.",
+  "reference": "SELECT DATE_TRUNC('month', registered_at) AS month, COUNT(*) FROM customers WHERE registered_at BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY month ORDER BY month",
+  "hints": [
+   "Порядок: SELECT → FROM → WHERE → GROUP BY → ORDER BY.",
+   "Групуємо за обрізаним місяцем (month), а не за повною датою. Рік задаємо діапазоном дат.",
+   "Схожий запит на іншій таблиці: SELECT DATE_TRUNC('month', order_date) AS month, COUNT(*) FROM orders WHERE status = 'cancelled' GROUP BY month ORDER BY month"
+  ]
+ },
+ {
+  "id": "m1-d10-02",
+  "type": "sql",
+  "title": "Міста, де понад 500 клієнтів",
+  "prompt": "Олена обирає міста для реклами на білбордах. Виведи `city` і кількість клієнтів лише для міст, де клієнтів **понад 500**.",
+  "reference": "SELECT city, COUNT(*) FROM customers GROUP BY city HAVING COUNT(*) > 500",
+  "hints": [
+   "Кількість за містами уже рахується. Бракує фільтра на цю кількість.",
+   "Після GROUP BY city допиши HAVING COUNT(*) > 500.",
+   "Приклад на іншій таблиці: SELECT brand, COUNT(*) FROM products GROUP BY brand HAVING COUNT(*) >= 25"
+  ]
+ },
+ {
+  "id": "m1-d10-04",
+  "type": "sql",
+  "title": "Знайди помилку: агрегат у WHERE",
+  "prompt": "Колега шукав категорії, де **понад 18 товарів**, і отримав помилку. Виправ запит. Колонки: `category`, кількість товарів.",
+  "reference": "SELECT category, COUNT(*) FROM products GROUP BY category HAVING COUNT(*) > 18",
+  "hints": [
+   "Помилка каже: агрегатні функції заборонені у WHERE.",
+   "Перенеси умову після GROUP BY і заміни WHERE на HAVING.",
+   "Приклад на іншій таблиці: SELECT delivery_method, COUNT(*) FROM orders GROUP BY delivery_method HAVING COUNT(*) > 10000"
+  ]
+ },
+ {
+  "id": "m1-d10-05",
+  "type": "sql",
+  "title": "Категорії з маржею понад 30 %",
+  "prompt": "Олена хоче знати, де найвигідніший асортимент. Для кожної **категорії** порахуй **середню частку маржі** товарів — середнє від `(price_uah - cost_uah)::numeric / price_uah` (0.3 = 30 %) — і залиш лише категорії, де вона **понад 0.3**. Колонки: `category`, середня частка.",
+  "reference": "SELECT category, AVG((price_uah - cost_uah)::numeric / price_uah) FROM products GROUP BY category HAVING AVG((price_uah - cost_uah)::numeric / price_uah) > 0.3",
+  "hints": [
+   "Три частини: частка маржі (не забудь ::numeric!), AVG за категоріями і HAVING.",
+   "SELECT category, AVG(вираз) … GROUP BY category HAVING AVG(той самий вираз) > 0.3. У HAVING назву з AS писати не можна — повтори вираз.",
+   "Приклад на іншій таблиці: SELECT delivery_method, AVG(discount_uah / total_uah) FROM orders WHERE total_uah > 0 GROUP BY delivery_method HAVING AVG(discount_uah / total_uah) > 0.01"
+  ]
+ },
+ {
+  "id": "m1-d10-06",
+  "type": "sql",
+  "title": "Питання 1: 2025 рік загалом",
+  "prompt": "Починаємо проєкт «5 питань Олени». **Питання 1:** скільки замовлень і яка виручка була у 2025 році? Виведи в одному рядку **кількість доставлених замовлень** і **виручку** за 2025 рік.",
+  "reference": "SELECT COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31'",
+  "hints": [
+   "Два агрегати в одному рядку і два фільтри: статус і рік.",
+   "Результат — один рядок, тож без GROUP BY: у SELECT два агрегати (кількість рядків і сума по полю суми замовлення). У WHERE дві умови через AND: статус і дата від початку до кінця року.",
+   "Приклад на іншій таблиці: SELECT COUNT(*), AVG(price_uah) FROM products WHERE category = 'Блендери'"
+  ]
+ },
+ {
+  "id": "m1-d10-07",
+  "type": "sql",
+  "title": "Питання 1: 2025 рік за кварталами",
+  "prompt": "Розклади 2025 рік **за кварталами**: виведи квартал (`DATE_TRUNC('quarter', order_date)`), **кількість доставлених замовлень** і **виручку**, від I до IV кварталу. Квартал саме у такому вигляді — `DATE_TRUNC('quarter', …)` (перша дата кварталу): так квартали сортуються як дати. Текст чи число з `EXTRACT(QUARTER …)` перевірка не зарахує.",
+  "reference": "SELECT DATE_TRUNC('quarter', order_date) AS quarter, COUNT(*), SUM(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY quarter ORDER BY quarter",
+  "hints": [
+   "Як виручка за місяцями з дня 9, лише 'quarter' замість 'month' і ще COUNT(*).",
+   "Як виручка за місяцями з дня 9, але крок обрізання дати — квартал, а в SELECT додається ще й підрахунок рядків. Групуй і сортуй за обрізаною датою.",
+   "Приклад на іншій таблиці: SELECT DATE_TRUNC('quarter', registered_at) AS quarter, COUNT(*) FROM customers WHERE registered_at BETWEEN '2024-01-01' AND '2024-12-31' GROUP BY quarter ORDER BY quarter"
+  ]
+ },
+ {
+  "id": "m1-d10-08",
+  "type": "sql",
+  "title": "Питання 2: способи доставки",
+  "prompt": "**Питання 2:** який спосіб доставки найпопулярніший і в якого найвищий середній чек? Для **доставлених замовлень 2025 року** виведи `delivery_method`, **кількість замовлень** і **середній чек**, від найпопулярнішого.",
+  "reference": "SELECT delivery_method, COUNT(*), AVG(total_uah) FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method ORDER BY COUNT(*) DESC",
+  "hints": [
+   "Групи — способи доставки, два агрегати, сортування за кількістю.",
+   "Групи — способи доставки. У SELECT: кількість рядків і середнє по полю суми замовлення. У WHERE ті самі дві умови, що в питанні 1. Сортування — за кількістю, найбільша перша.",
+   "Приклад на іншій таблиці: SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand ORDER BY COUNT(*) DESC"
+  ]
+ },
+ {
+  "id": "m1-d11-03",
+  "type": "sql",
+  "title": "Знайди помилку: псевдонім у WHERE",
+  "prompt": "Колега хотів показати товари з **маржею понад 2000 грн** і отримав помилку «column \"margin_uah\" does not exist». Виправ запит. Колонки: `product_name`, `margin_uah`.",
+  "reference": "SELECT product_name, price_uah - cost_uah AS margin_uah FROM products WHERE price_uah - cost_uah > 2000",
+  "hints": [
+   "WHERE виконується раніше за SELECT — у цей момент назви margin_uah ще не існує.",
+   "У WHERE повтори сам вираз: price_uah - cost_uah > 2000. AS у SELECT можна залишити.",
+   "Приклад на іншій таблиці: SELECT order_id, total_uah + discount_uah AS full_sum FROM orders WHERE total_uah + discount_uah > 30000"
+  ]
+ },
+ {
+  "id": "m1-d11-06",
+  "type": "sql",
+  "title": "Зміни запит колеги",
+  "prompt": "Олена просить той самий звіт, але **за весь 2025 рік** і лише для способів, де **понад 3000** доставлених замовлень. Усе інше (колонки, округлення, сортування) — як у колеги.",
+  "reference": "SELECT delivery_method, COUNT(*) AS orders_cnt, ROUND(AVG(total_uah), 0) AS avg_check FROM orders WHERE status = 'delivered' AND order_date BETWEEN '2025-01-01' AND '2025-12-31' GROUP BY delivery_method HAVING COUNT(*) > 3000 ORDER BY avg_check DESC",
+  "hints": [
+   "Змінити треба лише два місця: період і поріг кількості.",
+   "Структура вже готова, міняти треба лише два місця: межі періоду у фільтрі за датою і число в умові на кількість замовлень у групі.",
+   "Приклад на іншій таблиці: якщо в SELECT brand, COUNT(*) FROM products GROUP BY brand HAVING COUNT(*) > 20 треба поріг 25 — міняєш лише число в HAVING."
+  ]
+ },
+ {
+  "id": "m1-d11-07",
+  "type": "sql",
+  "title": "Напиши запит за описом",
+  "prompt": "Олена: «Які бренди в нас найширше представлені і наскільки вони дорогі? Покажи бренди, у яких **понад 20 товарів**: бренд, кількість товарів і середню ціну — **від найдорожчих у середньому**». Середню ціну не округлюй або округли до копійок.",
+  "reference": "SELECT brand, COUNT(*), AVG(price_uah) FROM products GROUP BY brand HAVING COUNT(*) > 20 ORDER BY AVG(price_uah) DESC",
+  "hints": [
+   "Розклади прохання на етапи: групи → фільтр груп → колонки → сортування.",
+   "Групуй за брендом. Фільтр на кількість у групі — це HAVING, а не WHERE. Сортування за середньою ціною від найбільшої; вираз для середнього повтори в ORDER BY.",
+   "Приклад на іншій таблиці: SELECT city, COUNT(*) FROM customers GROUP BY city HAVING COUNT(*) > 1000 ORDER BY COUNT(*) DESC"
+  ]
+ },
+ {
+  "id": "m1-d12-02",
+  "type": "sql",
+  "title": "Питання 3: топ-5 категорій за маржею в гривнях",
+  "prompt": "Виведи **5 категорій** з найбільшою **середньою маржею товару в гривнях** (середнє від `price_uah - cost_uah`): `category` і середня маржа, від найбільшої.",
+  "reference": "SELECT category, AVG(price_uah - cost_uah) AS avg_margin_uah FROM products GROUP BY category ORDER BY avg_margin_uah DESC LIMIT 5",
+  "hints": [
+   "Групуємо за категорією, рахуємо середнє від маржі, сортуємо, обрізаємо до 5.",
+   "У SELECT: категорія і середнє від різниці ціни та собівартості з іменем через AS. Далі групування за категорією, сортування за цим середнім від найбільшого і обмеження до п'яти рядків.",
+   "Приклад на іншій таблиці: SELECT city, COUNT(*) AS cnt FROM customers GROUP BY city ORDER BY cnt DESC LIMIT 5"
+  ]
+ },
+ {
+  "id": "m1-d12-03",
+  "type": "sql",
+  "title": "Питання 3: топ-5 за маржею у відсотках",
+  "prompt": "Тепер **5 категорій** з найбільшою **середньою часткою маржі** (середнє від `(price_uah - cost_uah)::numeric / price_uah`): `category` і середня частка, від найбільшої.",
+  "reference": "SELECT category, AVG((price_uah - cost_uah)::numeric / price_uah) AS avg_margin_share FROM products GROUP BY category ORDER BY avg_margin_share DESC LIMIT 5",
+  "hints": [
+   "Той самий запит, що й попередній, лише інший вираз усередині AVG.",
+   "Структура та сама, що в попередній вправі; змінюється лише вираз усередині середнього: різницю ціни й собівартості треба поділити на ціну, а чисельник привести до numeric — інакше цілочисельне ділення дасть самі нулі.",
+   "Приклад на іншій таблиці: SELECT delivery_method, AVG(discount_uah / total_uah) AS share FROM orders WHERE total_uah > 0 GROUP BY delivery_method ORDER BY share DESC LIMIT 2"
+  ]
+ },
+ {
+  "id": "m1-d12-05",
+  "type": "sql",
+  "title": "Питання 4: березень проти минулого року",
+  "prompt": "Чи провал березня — сезонність? Порівняй з минулим роком: виведи **місяць** і **виручку** за **лютий–квітень 2024** і **лютий–квітень 2025** (6 рядків), по порядку місяців. Місяць виведи як `DATE_TRUNC('month', …)` (перша дата місяця) — інші формати місяця, як-от `TO_CHAR` чи `EXTRACT`, перевірка не зарахує.",
+  "reference": "SELECT DATE_TRUNC('month', order_date) AS month, SUM(total_uah) FROM orders WHERE status = 'delivered' AND (order_date BETWEEN '2024-02-01' AND '2024-04-30' OR order_date BETWEEN '2025-02-01' AND '2025-04-30') GROUP BY month ORDER BY month",
+  "hints": [
+   "Два окремі періоди дат — дві умови BETWEEN через OR. Згадай день 2: AND і OR разом.",
+   "Фільтр за датою складається з двох періодів, з'єднаних через OR. Цей блок візьми в дужки, щоб він не змішався з умовою на статус, з'єднаною через AND. Місяць, групування й сортування — як у дні 9.",
+   "Приклад на іншій таблиці: SELECT COUNT(*) FROM customers WHERE acquisition_channel = 'email' AND (registered_at BETWEEN '2024-01-01' AND '2024-01-31' OR registered_at BETWEEN '2025-01-01' AND '2025-01-31')"
+  ]
+ }
+]

@@ -1,0 +1,319 @@
+[
+ {
+  "id": "L01",
+  "exercise_id": "m1-d7-02",
+  "attempts": 2,
+  "code": "SELECT COUNT(delivery_date) FROM orders",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "COUNT(col) замість COUNT(*)",
+  "expected": "Сказати, що запит виконується, але рахує не рядки, а лише непорожні значення однієї колонки; запитати, що буде з замовленнями, у яких delivery_date порожня. Не писати COUNT(*) готовим рядком і не називати 69610. Прямо: це помилка в логіці, не формату.",
+  "must_not_contain": [
+   "SELECT COUNT(*) FROM orders",
+   "69610",
+   "69 610"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L02",
+  "exercise_id": "m1-d3-04",
+  "attempts": 3,
+  "code": "SELECT order_id, order_date, total_uah\nFROM orders\nWHERE created_at BETWEEN '2025-12-01' AND '2025-12-31'",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків не та: потрібно 3416, у тебе 3301.",
+  "category": "BETWEEN по timestamp губить останній день",
+  "expected": "Пояснити механізм: created_at має час, '2025-12-31' означає 31.12 о 00:00, тож усе після півночі 31 грудня випадає; навести приклад на іншій таблиці/колонці; поставити навідне питання, що значить кінець діапазону для timestamp. Не називати 3416 і не писати order_date BETWEEN '2025-12-01' AND '2025-12-31'. Це логіка, не формат.",
+  "must_not_contain": [
+   "order_date BETWEEN '2025-12-01' AND '2025-12-31'",
+   "3416",
+   "3 416"
+  ],
+  "check_stage": "visible",
+  "check_code": "row_count"
+ },
+ {
+  "id": "L03",
+  "exercise_id": "m1-d2-10",
+  "attempts": 2,
+  "code": "SELECT * FROM customers\nWHERE acquisition_channel = 'telegram'\n  AND registered_at > '2026-01-01'",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків не та: потрібно 733, у тебе 729.",
+  "category": "> замість >=",
+  "expected": "Вказати на оператор > біля registered_at: перший день (1 січня) виключається, а завдання каже «з початку року». Не давати готового >= у повному запиті, не називати 733. Це логіка.",
+  "must_not_contain": [
+   "registered_at >= '2026-01-01'",
+   "733"
+  ],
+  "check_stage": "visible",
+  "check_code": "row_count"
+ },
+ {
+  "id": "L04",
+  "exercise_id": "m1-d7-08",
+  "attempts": 3,
+  "code": "SELECT COUNT(*), COUNT(delivery_date)\nFROM orders\nWHERE status = 'delivered'",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "status='delivered' там, де потрібні всі",
+  "expected": "Помітити, що структура з двома агрегатами правильна, але WHERE status = 'delivered' звужує вибірку, а в завданні потрібні ВСІ замовлення; запитати, які статуси відкидаємо. Не називати 69610 і 64479. Це логіка.",
+  "must_not_contain": [
+   "69610",
+   "69 610",
+   "64479",
+   "64 479",
+   "SELECT COUNT(*), COUNT(delivery_date) FROM orders"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L05",
+  "exercise_id": "m1-d8-07",
+  "attempts": 4,
+  "code": "SELECT c.acquisition_channel, AVG(o.total_uah)\nFROM orders o\nJOIN customers c ON c.customer_id = o.customer_id\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status = 'delivered'\nGROUP BY c.acquisition_channel",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "дублікати рядків при JOIN з order_items",
+  "expected": "Пояснити, що JOIN order_items розмножує замовлення (одне замовлення стає стількома рядками, скільки в ньому позицій), тому середній чек зміщується до замовлень з багатьма позиціями; запитати, чи потрібна таблиця order_items для цього питання. Не писати готового запиту без цього JOIN. Це логіка.",
+  "must_not_contain": [
+   "FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'delivered' GROUP BY c.acquisition_channel"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L06",
+  "exercise_id": "m1-d10-02",
+  "attempts": 3,
+  "code": "SELECT city, COUNT(*)\nFROM customers\nWHERE customer_id > 500\nGROUP BY city",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків не та: потрібно 10, у тебе 24.",
+  "category": "WHERE замість HAVING за змістом",
+  "expected": "Помітити, що «понад 500 клієнтів» учень зробив умовою на рядок (customer_id > 500), а це умова на результат групування; пояснити різницю WHERE (до групування, по рядках) і HAVING (після, по агрегатах) на прикладі іншої таблиці. Не писати HAVING COUNT(*) > 500 у готовому вигляді.",
+  "must_not_contain": [
+   "HAVING COUNT(*) > 500",
+   "GROUP BY city HAVING"
+  ],
+  "check_stage": "visible",
+  "check_code": "row_count"
+ },
+ {
+  "id": "L07",
+  "exercise_id": "m1-d10-05",
+  "attempts": 3,
+  "code": "SELECT category, AVG((price_uah - cost_uah) / price_uah)\nFROM products\nGROUP BY category\nHAVING AVG((price_uah - cost_uah) / price_uah) > 0.3",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків не та: потрібно 10, у тебе 0.",
+  "category": "цілочисельне ділення",
+  "expected": "Пояснити, що integer / integer у PostgreSQL дає ціле з відкиданням дробу, тому частка завжди 0; нуль рядків у відповіді — наслідок. Навести приклад на іншому виразі (напр. 7 / 2). Не писати ::numeric у готовому запиті повністю; можна назвати поняття «привести тип», але не дати готовий вираз.",
+  "must_not_contain": [
+   "(price_uah - cost_uah)::numeric / price_uah",
+   "::numeric / price_uah"
+  ],
+  "check_stage": "visible",
+  "check_code": "row_count"
+ },
+ {
+  "id": "L08",
+  "exercise_id": "m1-d6-07",
+  "attempts": 2,
+  "code": "SELECT product_name, category, price_uah - cost_uah AS margin_uah\nFROM products\nWHERE category IN ('Павербанки', 'Зарядні пристрої')\n  AND price_uah - cost_uah > 300\nORDER BY margin_uah ASC",
+  "lastError": "",
+  "lastCheckMessage": "Рядки правильні, але порядок не той. Перевір ORDER BY і напрям сортування (ASC/DESC).",
+  "category": "ORDER BY ASC замість DESC (відхилено порядком)",
+  "expected": "Сказати прямо: рядки правильні, відхилено лише через порядок, і це напрям сортування; ASC дає від меншого до більшого, а в завданні потрібно інакше. Це «правильно по суті, відхилено порядком», а не помилка вибірки. Не писати повний запит.",
+  "must_not_contain": [
+   "ORDER BY margin_uah DESC"
+  ],
+  "check_stage": "visible",
+  "check_code": "order"
+ },
+ {
+  "id": "L09",
+  "exercise_id": "m1-d4-09",
+  "attempts": 2,
+  "code": "SELECT product_name, price_uah\nFROM products\nWHERE category = 'Кабелі та адаптери'\nLIMIT 10",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "LIMIT без ORDER BY",
+  "expected": "Пояснити, що без ORDER BY LIMIT бере будь-які 10 рядків, а не найдешевші; запитати, за чим база мала б їх відібрати. Не писати ORDER BY price_uah у готовому запиті.",
+  "must_not_contain": [
+   "ORDER BY price_uah LIMIT 10",
+   "ORDER BY price_uah"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L10",
+  "exercise_id": "m1-d12-02",
+  "attempts": 3,
+  "code": "SELECT brand, AVG(price_uah - cost_uah) AS avg_margin_uah\nFROM products\nGROUP BY brand\nORDER BY avg_margin_uah DESC\nLIMIT 5",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "GROUP BY не по тій колонці",
+  "expected": "Помітити, що групування йде за brand, а завдання питає про категорії; сама схема (AVG, DESC, LIMIT 5) правильна. Запитати, за якою колонкою групується те, що треба порівняти. Не називати категорії-переможці й не писати GROUP BY category повністю.",
+  "must_not_contain": [
+   "GROUP BY category"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L11",
+  "exercise_id": "m1-d3-09",
+  "attempts": 2,
+  "code": "SELECT order_id, order_date, status, delivery_date\nFROM orders\nWHERE delivery_date = NULL",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків не та: потрібно 5131, у тебе 0.",
+  "category": "невідфільтровані NULL: = NULL",
+  "expected": "Пояснити, що NULL не дорівнює нічому, навіть самому собі, тому умова = NULL ніколи не істинна й дає 0 рядків; спитати, як у SQL перевіряють відсутнє значення, або навести приклад на іншій колонці/таблиці. Не писати готову умову для delivery_date і не називати 5131.",
+  "must_not_contain": [
+   "delivery_date IS NULL",
+   "5131",
+   "5 131"
+  ],
+  "check_stage": "visible",
+  "check_code": "row_count"
+ },
+ {
+  "id": "L12",
+  "exercise_id": "m1-d9-03",
+  "attempts": 3,
+  "code": "SELECT TO_CHAR(order_date, 'YYYY-MM') AS month, COUNT(*)\nFROM orders\nWHERE order_date BETWEEN '2025-01-01' AND '2025-12-31'\nGROUP BY month\nORDER BY month",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "формат місяця TO_CHAR замість DATE_TRUNC (відхилено форматом)",
+  "expected": "Прямо: логіка групування за місяцями правильна, відхилено через тип значення — тут очікується дата (початок місяця), а не текст 'РРРР-ММ'. Не плутати з помилкою логіки. Підказати напрям (функція, що обрізає дату до місяця), але не писати DATE_TRUNC('month', order_date) готовим рядком.",
+  "must_not_contain": [
+   "DATE_TRUNC('month', order_date)"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L13",
+  "exercise_id": "m1-d1-02",
+  "attempts": 2,
+  "code": "SELECT customer_id, order_id, order_date, created_at, status,\n       delivery_method, delivery_date, promo_code_id, discount_uah, total_uah\nFROM orders\nLIMIT 10",
+  "lastError": "",
+  "lastCheckMessage": "Колонки або значення не ті: рядки не збігаються з даними таблиці.",
+  "category": "інший порядок колонок (відхилено)",
+  "expected": "Це правильний по суті запит: усі 10 колонок на місці, лише порядок інший, ніж у SELECT *; для великої кількості колонок перевірка порядок не вирівнює. Сказати прямо, що не логіка, а формат; порадити взяти вправу як є (SELECT * дає порядок таблиці). Не вигадувати помилку вибірки.",
+  "must_not_contain": [
+   "SELECT * FROM orders LIMIT 10"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L14",
+  "exercise_id": "m1-d4-08",
+  "attempts": 2,
+  "code": "SELECT order_id AS order_number, order_date AS \"Дата\", total_uah AS \"Сума, грн\"\nFROM orders\nWHERE order_date BETWEEN '2025-12-01' AND '2025-12-31'\nORDER BY total_uah DESC\nLIMIT 5",
+  "lastError": "",
+  "lastCheckMessage": "Назви колонок мають бути: номер, дата, сума, грн. Бракує: номер.",
+  "category": "інша назва псевдоніма (відхилено форматом)",
+  "expected": "Прямо: вибірка і сортування правильні, відхилено лише через назву першої колонки; прочитати завдання, яку назву просили. Не оголошувати помилку в логіці. Звернути увагу, що повідомлення перевірки через кому в назві «Сума, грн» читається двозначно. Не писати \"Номер\" готовим псевдонімом, лише вказати «перечитай, як названо колонку в завданні».",
+  "must_not_contain": [
+   "order_id AS \"Номер\"",
+   "AS \"Номер\""
+  ],
+  "check_stage": "visible",
+  "check_code": "column_names"
+ },
+ {
+  "id": "L15",
+  "exercise_id": "m1-d10-08",
+  "attempts": 4,
+  "code": "SELECT delivery_method, COUNT(*), AVG(total_uah)\nFROM orders\nWHERE status = 'delivered'\n  AND order_date BETWEEN '2025-01-01' AND '2025-12-31'\nGROUP BY delivery_method\nORDER BY AVG(total_uah) DESC",
+  "lastError": "",
+  "lastCheckMessage": "На видимих даних результат збігся, але на перевірочних — ні. Схоже, запит підігнаний під конкретні числа або умова записана не загально. Рядки правильні, але порядок не той. Перевір ORDER BY і напрям сортування (ASC/DESC).",
+  "category": "сортування за іншою колонкою: збіглося на видимих, не на перевірочних",
+  "expected": "Вибірка правильна; відхилено порядком, і лише на перевірочних даних. Повідомлення перевірки про «підігнано під числа» вводить в оману: пояснити, що тут не підгонка, а сортування за не тим показником, який просили (збіг на видимих даних випадковий). Сказати це прямо. Не називати, за чим саме треба сортувати, і не писати ORDER BY COUNT(*) DESC.",
+  "must_not_contain": [
+   "ORDER BY COUNT(*) DESC"
+  ],
+  "check_stage": "hidden",
+  "check_code": "order"
+ },
+ {
+  "id": "L16",
+  "exercise_id": "m1-d5-07",
+  "attempts": 3,
+  "code": "SELECT product_name, price_uah,\n  CASE\n    WHEN price_uah < 2000 THEN 'середній'\n    WHEN price_uah < 500 THEN 'бюджет'\n    ELSE 'преміум'\n  END AS segment\nFROM products",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "CASE з неправильним порядком умов",
+  "expected": "Пояснити, що CASE перевіряє гілки зверху вниз і зупиняється на першій істинній; гілка price_uah < 500 стає недосяжною, бо все дешевше 500 вже спіймала попередня. Запитати, у якому порядку перевірити гілки. Не показувати переписаний CASE.",
+  "must_not_contain": [
+   "WHEN price_uah < 500 THEN 'бюджет' WHEN price_uah < 2000"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L17",
+  "exercise_id": "m1-d12-03",
+  "attempts": 3,
+  "code": "SELECT category,\n       AVG(price_uah - cost_uah) / AVG(price_uah) AS avg_margin_share\nFROM products\nGROUP BY category\nORDER BY avg_margin_share DESC\nLIMIT 5",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "середнє від різниць / середнє від цін замість середнього від часток",
+  "expected": "Пояснити різницю: AVG(a)/AVG(b) не те саме, що AVG(a/b); у завданні рахується маржа кожного товару, а потім її середнє. Це логіка. Не писати AVG((price_uah - cost_uah)::numeric / price_uah) у готовому вигляді.",
+  "must_not_contain": [
+   "AVG((price_uah - cost_uah)::numeric / price_uah)",
+   "::numeric"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L18",
+  "exercise_id": "m1-d7-09",
+  "attempts": 2,
+  "code": "SELECT DISTINCT COUNT(customer_id)\nFROM orders",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "DISTINCT не там (зовні агрегату)",
+  "expected": "Пояснити, що DISTINCT перед COUNT прибирає дублікати рядків результату (а він один), а не повторні customer_id; запитати, до чого саме має застосовуватися унікальність. Не писати COUNT(DISTINCT customer_id).",
+  "must_not_contain": [
+   "COUNT(DISTINCT customer_id)"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L19",
+  "exercise_id": "m1-d12-02",
+  "attempts": 2,
+  "code": "SELECT category, ROUND(AVG(price_uah - cost_uah)) AS avg_margin_uah\nFROM products\nGROUP BY category\nORDER BY avg_margin_uah DESC\nLIMIT 5",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "правильно по суті, відхилено через округлення",
+  "expected": "Сказати прямо: логіка вірна (група, середнє, топ-5), але ROUND змінює значення настільки, що перевірка їх не приймає; значення мають бути точні. Це не помилка логіки. Не називати правильні значення.",
+  "must_not_contain": [
+   "AVG(price_uah - cost_uah) AS avg_margin_uah"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ },
+ {
+  "id": "L20",
+  "exercise_id": "m1-d4-02",
+  "attempts": 3,
+  "code": "SELECT product_name, brand, price_uah\nFROM products\nORDER BY price_uah\nLIMIT 10",
+  "lastError": "",
+  "lastCheckMessage": "Кількість рядків правильна, але значення відрізняються. Перевір умови, обчислення і колонки.",
+  "category": "ORDER BY ASC замість DESC при LIMIT (повідомлення «значення відрізняються»)",
+  "expected": "Перевірка каже лише «значення відрізняються»; наставник має сам помітити, що замість найдорожчих береться 10 найдешевших (напрям сортування), і сказати, що вибір рядків залежить від напряму. Не писати DESC у готовому запиті.",
+  "must_not_contain": [
+   "ORDER BY price_uah DESC LIMIT 10",
+   "ORDER BY price_uah DESC"
+  ],
+  "check_stage": "visible",
+  "check_code": "values"
+ }
+]
