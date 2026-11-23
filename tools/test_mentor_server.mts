@@ -386,6 +386,47 @@ console.log('\n[И] Запобіжник: обсяг, запитання в кі
   gj = await g.json();
   check('«перевірка зарахувала» не вважається звертанням', gj.retried === false && anthropicCalls === 1, JSON.stringify({ r: gj.retried, c: anthropicCalls }));
 
+  // Чоловічий рід у звертанні — теж повтор (дірка, знайдена на прогоні 4).
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Ти написав назву з помилкою. Що в ній не збігається зі схемою?'),
+    text('У твоєму запиті назва написана з помилкою. Що в ній не збігається зі схемою?'),
+  ];
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-masc-0001' }));
+  gj = await g.json();
+  check('чоловічий рід у звертанні спричинив повтор', gj.retried === true && anthropicCalls === 2, JSON.stringify({ r: gj.retried, c: anthropicCalls }));
+  check('після повтору чоловічого роду немає', !/написав/.test(gj.text), gj.text);
+
+  // «ти бачиш рядків» — родовий відмінок множини, а не дієслово: повтору бути не повинно.
+  anthropicCalls = 0;
+  anthropicReply = text('Скільки ти бачиш рядків у результаті, і скільком клієнтам вони належать?');
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-nofalse-2' }));
+  gj = await g.json();
+  check('родовий відмінок на -ів не вважається звертанням', gj.retried === false && anthropicCalls === 1, JSON.stringify({ r: gj.retried, c: anthropicCalls }));
+
+  // Абзаци склеюються без виклику моделі.
+  anthropicCalls = 0;
+  anthropicReply = text('У твоєму запиті немає групування.\n\nЩо саме розбиває рядки на групи?');
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-para-0001' }));
+  gj = await g.json();
+  check('порожній рядок склеєно без повтору', gj.retried === false && anthropicCalls === 1 && !/\n/.test(gj.text), JSON.stringify({ r: gj.retried, c: anthropicCalls, t: gj.text }));
+
+  // Вказівка на повтор містить заборону згадувати її учневі (прогін 4: модель відповідала
+  // «ти справедливо вказуєш, що в попередній підказці я назвав…» — учень цього не бачив).
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Яку колонку ти б дописала, щоб вийшов підсумок?'),
+    text('Яку колонку дописати, щоб вийшов підсумок?'),
+  ];
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-fix-00001' }));
+  gj = await g.json();
+  const fixMsg = String(lastPayload.messages?.[2]?.content ?? '');
+  check('повтор просить підказку з нуля, без згадки вказівки', /Ні цієї вказівки/.test(fixMsg), fixMsg.slice(0, 120));
+
   // М'яка проблема лишилася і після повтору — підказку НЕ підміняємо.
   anthropicCalls = 0;
   anthropicReply = [
