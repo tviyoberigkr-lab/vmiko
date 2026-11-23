@@ -20,7 +20,8 @@ import { pathToFileURL } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 
 const ROOT = path.join(path.dirname(new URL(import.meta.url).pathname), '..');
-const SRC = path.join(ROOT, 'supabase/functions/mentor/index.ts');
+// MENTOR_SRC=build/mentor/index.ts — прогнати ті самі тести проти збірки для деплою.
+const SRC = path.join(ROOT, process.env.MENTOR_SRC || 'supabase/functions/mentor/index.ts');
 const OUT = path.join(os.tmpdir(), 'vmiko_mentor_sim.mts');
 let src = fs.readFileSync(SRC, 'utf8');
 src = src.replace('import "jsr:@supabase/functions-js/edge-runtime.d.ts";', '');

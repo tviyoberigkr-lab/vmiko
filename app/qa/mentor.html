@@ -39,7 +39,7 @@ document.getElementById('go').onclick=async()=>{
   const skipped=corpus.length-todo.length;
   log(`кейсів до надсилання: ${todo.length}${skipped?` (пропущено ${skipped}: виклику не має бути)`:''}`,'dim');
   log(`орієнтовний час: ${Math.ceil(todo.length*CYCLE_MS/60000)} хв`,'dim');
-  let sent=0, bad=0, retried=0, guardHits=0, guardStops=0;
+  let sent=0, bad=0, retried=0, guardHits=0, guardStops=0, guardBacks=0;
   for(const c of todo){
     const started=performance.now();
     let {status,ms,j}=await askOne(c.req);
@@ -53,17 +53,17 @@ document.getElementById('go').onclick=async()=>{
       text:j.text||'',error:j.error||j.parse_error||null,usage:j.usage||null,
       stop_reason:j.stop_reason||null,content_types:j.content_types||null,
       truncated:j.truncated===true,reason:j.reason||null,
-      retried:j.retried===true,guarded:j.guarded===true};
+      retried:j.retried===true,guarded:j.guarded===true,reverted:j.reverted===true};
     await save(row);
     sent++; if(status!==200) bad++;
-    if(j.retried) guardHits++; if(j.guarded) guardStops++;
+    if(j.retried) guardHits++; if(j.guarded) guardStops++; if(j.reverted) guardBacks++;
     fill.style.width=Math.round(sent/todo.length*100)+'%';
-    log(`${c.id} · ${status} · ${ms} мс${j.truncated?' · ОБРІЗАНО':''}${j.retried?' · ПОВТОР':''}${j.guarded?' · ЗУПИНЕНО':''}${j.stop_reason&&j.stop_reason!=='end_turn'?' · '+j.stop_reason:''} · ${(j.text||j.error||'').slice(0,60)}…`, status===200?'ok':'bad');
+    log(`${c.id} · ${status} · ${ms} мс${j.truncated?' · ОБРІЗАНО':''}${j.retried?' · ПОВТОР':''}${j.guarded?' · ЗУПИНЕНО':''}${j.reverted?' · ВІДКАТ':''}${j.stop_reason&&j.stop_reason!=='end_turn'?' · '+j.stop_reason:''} · ${(j.text||j.error||'').slice(0,60)}…`, status===200?'ok':'bad');
     const left=CYCLE_MS-(performance.now()-started);
     if(left>0) await sleep(left);
   }
   log(`ГОТОВО: надіслано ${sent}, не 200 — ${bad}, повторів через ліміт — ${retried}.`,'ok');
-  log(`Запобіжник: спрацював ${guardHits} разів, з них зупинив підказку ${guardStops}. Можеш закривати.`,'ok');
+  log(`Запобіжник: спрацював ${guardHits} разів, зупинив підказку ${guardStops}, відкотив до першої відповіді ${guardBacks}. Можеш закривати.`,'ok');
   log(`Напиши Маяку: «прогін ${run_id}».`,'ok');
 };
 </script></body></html>

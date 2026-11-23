@@ -8,7 +8,9 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const src = readFileSync(new URL('../supabase/functions/mentor/index.ts', import.meta.url), 'utf8');
+// Без аргументів — джерело; `node tools/system_sha.mjs build` — збірка для деплою.
+const rel = process.argv[2] === 'build' ? '../build/mentor/index.ts' : '../supabase/functions/mentor/index.ts';
+const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
 const m = src.match(/const SYSTEM = `([\s\S]*?)`;\n/);
 if (!m) { console.error('SYSTEM у файлі не знайдено'); process.exit(1); }
 // У коді це шаблонний рядок без підстановок, тож вміст дорівнює тексту промпту один в один.
