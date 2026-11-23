@@ -348,6 +348,19 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
 
 
 // ---------------------------------------------------------------- м'які перевірки запобіжника
+console.log('\n[І] Відбиток SYSTEM-промпту (kind: version)');
+{
+  anthropicCalls = 0;
+  const vr = await post({ kind: 'version' });
+  const vj: any = await vr.json();
+  const { execFileSync } = await import('node:child_process');
+  const out = String(execFileSync('node', ['tools/system_sha.mjs'])).trim();
+  const want = /system_sha=([0-9a-f]{16}) system_chars=(\d+)/.exec(out)!;
+  check('kind:version віддає відбиток промпту', vr.status === 200 && /^[0-9a-f]{16}$/.test(vj.system_sha || ''), JSON.stringify(vj));
+  check('відбиток збігається з tools/system_sha.mjs', vj.system_sha === want[1] && vj.system_chars === Number(want[2]), `функція ${vj.system_sha}/${vj.system_chars}, файл ${want[1]}/${want[2]}`);
+  check('kind:version не викликає модель', anthropicCalls === 0, 'викликів ' + anthropicCalls);
+}
+
 console.log('\n[И] Запобіжник: обсяг, запитання в кінці, жіночий рід');
 {
   siteverifyOk = true; siteverifyDown = false;
