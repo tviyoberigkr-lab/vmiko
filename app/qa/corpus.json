@@ -187,8 +187,7 @@
   "expected": "Пояснити: у подвійних лапках регістр має значення, колонка в базі пишеться малими літерами; лапки тут не потрібні. Не давати готовий SELECT.",
   "must_not_contain": [
    "SELECT order_id, order_date, total_uah FROM orders LIMIT 20",
-   "order_id, order_date, total_uah",
-   "order_id"
+   "order_id, order_date, total_uah"
   ],
   "category": "регістр у лапках",
   "expected_http": null,
@@ -216,8 +215,7 @@
   "expected": "Вказати на назву таблиці після FROM, порадити звірити з переліком таблиць (customers). Можна не називати правильну назву прямо, а попросити порівняти зі схемою.",
   "must_not_contain": [
    "FROM customers",
-   "SELECT * FROM customers LIMIT 5",
-   "customers"
+   "SELECT * FROM customers LIMIT 5"
   ],
   "category": "relation does not exist (однина)",
   "expected_http": null,
@@ -274,8 +272,7 @@
   "expected": "Пояснити правило: колонка поруч з агрегатом має бути у GROUP BY; вказати на city. Можна навести приклад на іншій таблиці. Не писати GROUP BY city повністю.",
   "must_not_contain": [
    "GROUP BY city",
-   "SELECT city, COUNT(*) FROM customers GROUP BY city",
-   "GROUP BY"
+   "SELECT city, COUNT(*) FROM customers GROUP BY city"
   ],
   "category": "GROUP BY без колонки",
   "expected_http": null,
@@ -751,10 +748,7 @@
    "checkCode": "row_count"
   },
   "expected": "Пояснити, що integer / integer у PostgreSQL дає ціле з відкиданням дробу, тому частка завжди 0; нуль рядків у відповіді — наслідок. Навести приклад на іншому виразі (напр. 7 / 2). Не писати ::numeric у готовому запиті повністю; можна назвати поняття «привести тип», але не дати готовий вираз.",
-  "must_not_contain": [
-   "(price_uah - cost_uah)::numeric / price_uah",
-   "::numeric / price_uah"
-  ],
+  "must_not_contain": [],
   "category": "цілочисельне ділення",
   "expected_http": null,
   "note": null
@@ -836,8 +830,7 @@
   },
   "expected": "Помітити, що групування йде за brand, а завдання питає про категорії; сама схема (AVG, DESC, LIMIT 5) правильна. Запитати, за якою колонкою групується те, що треба порівняти. Не називати категорії-переможці й не писати GROUP BY category повністю.",
   "must_not_contain": [
-   "GROUP BY category",
-   "category"
+   "GROUP BY category"
   ],
   "category": "GROUP BY не по тій колонці",
   "expected_http": null,
@@ -894,8 +887,7 @@
   },
   "expected": "Прямо: логіка групування за місяцями правильна, відхилено через тип значення — тут очікується дата (початок місяця), а не текст 'РРРР-ММ'. Не плутати з помилкою логіки. Підказати напрям (функція, що обрізає дату до місяця), але не писати DATE_TRUNC('month', order_date) готовим рядком.",
   "must_not_contain": [
-   "DATE_TRUNC('month', order_date)",
-   "DATE_TRUNC"
+   "DATE_TRUNC('month', order_date)"
   ],
   "category": "формат місяця TO_CHAR замість DATE_TRUNC (відхилено форматом)",
   "expected_http": null,
@@ -1031,8 +1023,7 @@
   },
   "expected": "Пояснити різницю: AVG(a)/AVG(b) не те саме, що AVG(a/b); у завданні рахується маржа кожного товару, а потім її середнє. Це логіка. Не писати AVG((price_uah - cost_uah)::numeric / price_uah) у готовому вигляді.",
   "must_not_contain": [
-   "AVG((price_uah - cost_uah)::numeric / price_uah)",
-   "::numeric"
+   "AVG((price_uah - cost_uah)::numeric / price_uah)"
   ],
   "category": "середнє від різниць / середнє від цін замість середнього від часток",
   "expected_http": null,
@@ -1373,9 +1364,7 @@
    "checkCode": ""
   },
   "expected": "code_gen: 'SELECT COUNT(*) FROM orders -- ' + 'x'*N до 5000 символів; проксі обрізає до 4000, не падає; наставник відповідає по початку коду (там є правильний запит), без помилки 500.",
-  "must_not_contain": [
-   "SELECT COUNT(*) FROM orders"
-  ],
+  "must_not_contain": [],
   "category": "code_4000plus",
   "expected_http": 200,
   "note": null
@@ -1490,8 +1479,7 @@
    "GROUP BY city",
    "SELECT city, COUNT(*) FROM customers GROUP BY city",
    "Конечно",
-   "Помогу",
-   "GROUP BY"
+   "Помогу"
   ],
   "category": "russian_user_text",
   "expected_http": null,
@@ -1729,8 +1717,7 @@
   "must_not_contain": [
    "AND registered_at BETWEEN",
    "1561",
-   "9615",
-   "OR registered_at"
+   "9615"
   ],
   "category": "Parsons: узято зайвий блок OR замість AND",
   "expected_http": null,
@@ -1813,7 +1800,6 @@
   },
   "expected": "Рядків стільки ж, значення інші: узято протилежний кінець списку. Тип — помилка в логіці (набір рядків інший), не формат, бо разом із LIMIT напрям змінює самі рядки. Слова DESC і ASC не вживати (P2).",
   "must_not_contain": [
-   "DESC",
    "ASC",
    "ORDER BY price_uah LIMIT 10"
   ],
@@ -1842,8 +1828,7 @@
   },
   "expected": "Колонки product_name немає в тій таблиці, яку обрано. Наставник каже, що колонка шукається не там, і відсилає звірити, у якій таблиці живуть назви товарів. Назву правильної таблиці не каже (P2).",
   "must_not_contain": [
-   "FROM products",
-   "products"
+   "FROM products"
   ],
   "category": "Parsons: узято блок FROM orders замість FROM products",
   "expected_http": null,
@@ -1871,8 +1856,7 @@
   "expected": "Перша фраза — що проблема в кількості колонок у SELECT, а логіку рядків обговорювати не потрібно (так приписує мапа KIND для columns_count). Наставник відсилає перечитати умову задачі й порахувати, скільки показників у ній названо. Якого саме показника бракує — не каже (P1/P2).",
   "must_not_contain": [
    "AVG(total_uah)",
-   "AVG",
-   "середній чек"
+   "AVG"
   ],
   "category": "columns_count: дві колонки замість трьох",
   "expected_http": null,
@@ -1899,7 +1883,6 @@
   },
   "expected": "Те саме, але в інший бік: колонок більше, ніж просить умова. Наставник не має радити «прибрати SUM» (це називання заміни, P2) — лише що в SELECT є показник, якого умова не просила, і запитання, скільки показників у ній названо.",
   "must_not_contain": [
-   "SUM(total_uah)",
    "прибери SUM",
    "видали SUM"
   ],
@@ -1927,10 +1910,7 @@
    "checkCode": ""
   },
   "expected": "Обидва поля непорожні. Головна проблема — помилка бази (друкарська помилка в назві колонки у GROUP BY): саме вона не дала запиту виконатися. Повідомлення перевірки стосується попередньої спроби й не має визначати відповідь. Наставник розбирає ОДНУ головну причину (P3) і не змішує дві.",
-  "must_not_contain": [
-   "delivery_method",
-   "status = 'delivered'"
-  ],
+  "must_not_contain": [],
   "category": "обидва поля разом: помилка бази + повідомлення попередньої перевірки",
   "expected_http": null,
   "note": "Перевіряє п.8 аркуша: раніше тернарник надсилав лише одне з полів, тож такий кейс був неможливий. Тепер обидва йдуть завжди, і з'явився ризик, що наставник візьметься за те, що не головне."

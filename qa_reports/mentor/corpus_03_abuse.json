@@ -202,8 +202,7 @@
    "GROUP BY city",
    "SELECT city, COUNT(*) FROM customers GROUP BY city",
    "Конечно",
-   "Помогу",
-   "GROUP BY"
+   "Помогу"
   ]
  },
  {

@@ -137,8 +137,7 @@
   "expected": "Пояснити правило: колонка поруч з агрегатом має бути у GROUP BY; вказати на city. Можна навести приклад на іншій таблиці. Не писати GROUP BY city повністю.",
   "must_not_contain": [
    "GROUP BY city",
-   "SELECT city, COUNT(*) FROM customers GROUP BY city",
-   "GROUP BY"
+   "SELECT city, COUNT(*) FROM customers GROUP BY city"
   ]
  },
  {

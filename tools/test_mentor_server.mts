@@ -138,7 +138,7 @@ r = await post(base({ code: 'SELECT 1 ```injected``` FROM products' }));
 let j: any = await r.json();
 check('200 і текст', r.status === 200 && j.text.startsWith('Подивися'), 'статус ' + r.status);
 check('усі ``` у коді учня замінено', !lastPrompt.includes('```injected') && lastPrompt.includes("'''injected'''"));
-check('max_tokens = 1500', lastPayload.max_tokens === 1500);
+check('max_tokens = 2500', lastPayload.max_tokens === 2500);
 check('output_config.effort = low', lastPayload.output_config?.effort === 'low');
 check('temperature і thinking не передаються', !('temperature' in lastPayload) && !('thinking' in lastPayload));
 check('СХЕМА з 6 таблиць у промпті', lastPrompt.includes('promo_codes(') && lastPrompt.includes('returns(') && !lastPrompt.includes('delivery,'));
@@ -272,11 +272,13 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
 {
   // Блок стоїть після перевірок капчі, тож вона ввімкнена — даємо кожному запиту токен.
   siteverifyOk = true; siteverifyDown = false;
+  await db.exec('delete from mentor_ip_burst');
   const studentCode = 'SELECT product_name, price_uah FROM orders LIMIT 10';
 
   // 1. Чисто: модель назвала лише те, що вже є в коді учня — повтору бути не повинно.
   anthropicCalls = 0;
   anthropicReply = text('У твоєму запиті після FROM стоїть orders, а назви товарів живуть в іншій таблиці. Де саме їх шукати за схемою?');
+  await db.exec('delete from mentor_ip_burst');
   let g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-clean-001' }));
   let gj: any = await g.json();
   check('назва з коду учня (orders) не вважається витоком', g.status === 200 && gj.retried === false, JSON.stringify({ s: g.status, r: gj.retried }));
@@ -288,6 +290,7 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
     text('Назви товарів лежать у таблиці products, а ти читаєш orders. Яку таблицю взяти?'),
     text('Ти читаєш таблицю із замовленнями, а потрібні назви товарів. Подивись у схемі, де вони живуть. Яку таблицю поставити у FROM?'),
   ];
+  await db.exec('delete from mentor_ip_burst');
   g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-retry-001' }));
   gj = await g.json();
   check('витік спричинив повтор', gj.retried === true, JSON.stringify(gj).slice(0, 160));
@@ -301,6 +304,7 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
     text('Назви товарів лежать у таблиці products. Яку таблицю взяти?'),
     text('Я ж кажу: це products. Яку таблицю взяти?'),
   ];
+  await db.exec('delete from mentor_ip_burst');
   g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-fallback-1' }));
   gj = await g.json();
   check('повторний витік → guarded', gj.guarded === true, JSON.stringify(gj).slice(0, 160));
@@ -313,6 +317,7 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
     text('У таблиці ідентифікатор називається order_id, маленькими літерами. Як це записати?'),
     text('Подвійні лапки роблять назву чутливою до регістру, тому написання має збігтися зі схемою точно. Як записати назву, щоб збіг був точним?'),
   ];
+  await db.exec('delete from mentor_ip_burst');
   g = await post(base({ captcha_token: 'ok', code: 'SELECT "Order_ID", order_date FROM orders LIMIT 20', device_id: 'guard-case-0001' }));
   gj = await g.json();
   check('order_id при "Order_ID" у коді — витік', gj.retried === true, JSON.stringify(gj).slice(0, 160));
@@ -321,6 +326,7 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
   // 5. Назва, яку вже назвала сама база в помилці, витоком не є.
   anthropicCalls = 0;
   anthropicReply = text('База каже, що customers не знайдено через зайву літеру. Що саме відрізняється?');
+  await db.exec('delete from mentor_ip_burst');
   g = await post(base({ captcha_token: 'ok', code: 'SELECT * FROM customerss', lastError: 'relation "customers" does not exist', device_id: 'guard-fromerr-01' }));
   gj = await g.json();
   check('назва з повідомлення бази витоком не є', gj.retried === false, JSON.stringify(gj).slice(0, 160));
@@ -329,6 +335,7 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
   anthropicCalls = 0;
   const longText = 'слово '.repeat(130).trim() + '?';
   anthropicReply = [text(longText), text('Коротка підказка про те, де шукати. Що в запиті не збігається з умовою?')];
+  await db.exec('delete from mentor_ip_burst');
   g = await post(base({ captcha_token: 'ok', code: studentCode, device_id: 'guard-toolong-01' }));
   gj = await g.json();
   check('задовга відповідь спричинила повтор', gj.retried === true && anthropicCalls === 2, JSON.stringify({ r: gj.retried, c: anthropicCalls }));
@@ -337,6 +344,58 @@ console.log('\n[З] Запобіжник: назва зі схеми, якої �
   // 7. Обидва виклики оплачено: токени списано двічі.
   const u = await calls('guard-toolong-01');
   check('токени другого виклику теж обліковано', Number(u.input_tokens) === 2600, JSON.stringify(u));
+}
+
+
+// ---------------------------------------------------------------- м'які перевірки запобіжника
+console.log('\n[И] Запобіжник: обсяг, запитання в кінці, жіночий рід');
+{
+  siteverifyOk = true; siteverifyDown = false;
+  await db.exec('delete from mentor_ip_burst');
+  const okCode = 'SELECT * FROM orders';
+
+  // Немає запитання в кінці — повтор; якщо модель виправилась, беремо її текст.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('У твоєму запиті немає групування. Подумай, що саме розбиває рядки на групи.'),
+    text('У твоєму запиті немає групування. Що саме розбиває рядки на групи?'),
+  ];
+  await db.exec('delete from mentor_ip_burst');
+  let g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-noq-00001' }));
+  let gj: any = await g.json();
+  check('відповідь без запитання спричинила повтор', gj.retried === true && anthropicCalls === 2, JSON.stringify({ r: gj.retried, c: anthropicCalls }));
+  check('після повтору відповідь закінчується запитанням', /\?$/.test(gj.text.trim()), gj.text);
+
+  // Жіночий рід у звертанні — повтор.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Яку колонку ти б дописала, щоб вийшов підсумок?'),
+    text('Яку колонку дописати, щоб вийшов підсумок?'),
+  ];
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-fem-00001' }));
+  gj = await g.json();
+  check('жіночий рід у звертанні спричинив повтор', gj.retried === true, JSON.stringify(gj).slice(0, 140));
+  check('після повтору роду немає', !/дописала/.test(gj.text), gj.text);
+
+  // Жіночий рід про перевірку чи базу — НЕ привід для повтору (хибне спрацювання).
+  anthropicCalls = 0;
+  anthropicReply = text('Перевірка не зарахувала запит, бо база не знайшла колонку. Що в назві не збігається?');
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-nofalse-1' }));
+  gj = await g.json();
+  check('«перевірка зарахувала» не вважається звертанням', gj.retried === false && anthropicCalls === 1, JSON.stringify({ r: gj.retried, c: anthropicCalls }));
+
+  // М'яка проблема лишилася і після повтору — підказку НЕ підміняємо.
+  anthropicCalls = 0;
+  anthropicReply = [
+    text('Подумай про групування.'),
+    text('Подумай про групування ще раз.'),
+  ];
+  await db.exec('delete from mentor_ip_burst');
+  g = await post(base({ captcha_token: 'ok', code: okCode, device_id: 'soft-keep-00001' }));
+  gj = await g.json();
+  check('м\'яка проблема не підміняє підказку заглушкою', gj.guarded === false && /групування/.test(gj.text), JSON.stringify(gj).slice(0, 140));
 }
 
 console.log(`\nУсього: ${passed} ok, ${failed} FAIL`);
